@@ -1,0 +1,63 @@
+blog system question
+for step 1 
+🧠 Core Concepts You’re Learning Here
+
+API boundary definition
+
+Role-based access control (RBAC)
+
+Separation of responsibilities
+
+Saying NO to feature creep
+
+
+
+i have to make -->
+landingpage , create blog ,show post, account, public   Name- blogApp
+blog page, every blog post is showing , public page.    Name -userblogs
+blog create , every blog is create , private page.      Name - blogCreate
+
+
+
+
+Todo-->
+1.use redis
+
+2.use aggregation to query the blog data from doubt
+db.users.aggregate([
+  {
+    $lookup: {
+      from: "blogs",         // The collection you want to get data from
+      localField: "_id",     // The ID in your User collection
+      foreignField: "userId",// The field in Blog collection that stores User ID
+      as: "userBlogs"        // Name for the combined result field
+    }
+  }
+]);
+
+3. use all the features of postman to learn postman.
+
+
+
+
+
+doubt-->
+1.how to use populate in mongodb to get all the user blog?
+2.what is the difference between formdata and json?
+3.when use this different url-->/showblog?userId=69804bab... vs /showblog/:userId: , when to use which one 
+
+
+
+
+
+address --->
+http://localhost:9000/api/users/auth/register --register
+http://localhost:9000/api/users/blog/saveblog  --saveblog
+http://localhost:9000/api/users/blog/showblog/  --showblog
+
+
+
+
+ram id -->69804bab34294a49af0986e4
+
+db.blogschemas.findbyId('698056b9b06b0b24d05d39ce')

@@ -1,59 +1,79 @@
-const blogPerson = require("../models/user");
-const blogSchema = require("../models/blogschema");
+// blogservice.js
 
-const blogSavetoDB = async (id,title, content) => {
-  //if blogPerson is user and if isVerified then proceed
-  const blog = await blogSchema.create({
-    userId:id,
+import blogDetailSchema from "../models/blogschema.js";
+
+//create or blog save to database
+export const blogSavetoDB = async (id, title, content, isPublished) => {
+  const blog = await blogDetailSchema.create({
+    userId: id,
     blogtitle: title,
     blogContent: content,
+    ...(isPublished !== undefined && {
+      isPublished: isPublished === true || isPublished === "true",
+    }),
   });
   return blog;
 };
 
-  const showAllBlog = async (userId) => {
-    //is blogPerson is user and if isVerified then proceed
-    const allBlogs = await blogSchema.find({ userId }).populate("userId");
-    return allBlogs;
+//show all blog to his user
+export const myBlogs = async (userId) => {
+  // const allBlogs = await blogDetailSchema.find({ userId }).populate("userId");
+  const allBlogs = await blogDetailSchema.find({ userId });
+  return allBlogs;
+};
+
+//blog updated
+export const blogUpdatefromDB = async (blogId, content, title, isPublished) => {
+  console.log("id , title, content is",blogId, title, content, isPublished);
+
+  const updateData = {
+    ...(title && {blogtitle:title}),
+    ...(content && {blogContent: content}),
+    ...(isPublished !== undefined && {
+      isPublished: isPublished === true || isPublished === "true",
+    }),
   };
 
-const blogUpdatefromDB =async(id,content,title)=>{
-  console.log("id , title, content is",id, title,content);
- 
-const updatedPost = await blogSchema.findOneAndUpdate(
- {userId:id},
-  {
-    blogtitle:title,
-    blogContent:content,
-  },
-  { new: true, runValidators: true }
-)
-console.log(updatedPost);
-return updatedPost;
+  const updatedPost = await blogDetailSchema.findOneAndUpdate(
+    { _id:blogId },
+    updateData,
+    { new: true, runValidators: true },
+  );
+  console.log(updatedPost);
+  return updatedPost;
+};
+
+
+// delete one blog
+export const deleteOneBlogFromDB =async(id)=>{
+  const result = await blogDetailSchema.findByIdAndDelete(id);
+  console.log("delte one blog is ",result);
+ return result;
 }
 
-// const blogDeletefromDB =async(id)=>{
+//delete all blogs
+export const deleteAllBlog = async (userId)=>{
+return await blogDetailSchema.deleteMany({userId});
+}
 
-// //is blogPerson is user and if isVerified then proceed
+//get isPublished blog
+export const getPublishedBlogs = async ()=>{
+  const result = await blogDetailSchema.findOne({isPublished:true});
+ return result;
+}
 
-// }
-
-module.exports = { blogSavetoDB, showAllBlog,blogUpdatefromDB };
-
-
-
-
-
+//getSingleBlog
+export const getSingleBlog = async(blogId)=>{
+  const result = await blogDetailSchema.findById(blogId);
+  return result;
+}
 
 
 /* 
-if blogPerson is user then he can add the blog not admin
+if blogPerson is user or admin  then he can acccess the blog 
 if user is login then can verified then can add blog
 
-
-
-
-Note-->
+Mongo Note-->
 new: true: By default, Mongoose returns the document as it was before the update. Set this to true to get the modified document back.
 runValidators: true: Since updates bypass the standard schema validation by default, this ensures the new data still follows your blog schema rules.
 

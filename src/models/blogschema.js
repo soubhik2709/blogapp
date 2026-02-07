@@ -1,11 +1,11 @@
 
 //blogschema.js
-const mongoose = require("mongoose");
 
+import mongoose from "mongoose";
 const blogSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "blogperson",
+    ref: "blogpeople",
     required: true,
   },
   blogtitle: {
@@ -13,7 +13,7 @@ const blogSchema = new mongoose.Schema({
     required: true,
     lowercase: true,  
   },
-  k:{
+  blogContent:{
     type: String,
     required: true,
     lowercase: true,
@@ -25,8 +25,9 @@ const blogSchema = new mongoose.Schema({
 
 },{timestamps:true});
 
+const blogDetailSchema = mongoose.models.blogschema || mongoose.model("blogschema", blogSchema);
 
-module.exports = mongoose.models.blogschema || mongoose.model("blogschema", blogSchema);
+export default blogDetailSchema;
 
 
 /*

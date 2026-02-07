@@ -61,3 +61,15 @@ http://localhost:9000/api/users/blog/showblog/  --showblog
 ram id -->69804bab34294a49af0986e4
 
 db.blogschemas.findbyId('698056b9b06b0b24d05d39ce')
+
+
+
+
+After logout the accessToken is valid untill its expire, so i can get access the protected route. so solution is 
+🔴 Option 1: Access-token blacklist (rare)
+Store access token IDs (jti) in DB/Redis
+On logout, blacklist it
+Middleware checks blacklist
+❌ Heavy
+❌ Slower
+❌ Rarely worth it

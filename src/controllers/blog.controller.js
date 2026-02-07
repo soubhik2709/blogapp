@@ -1,15 +1,15 @@
-const {
-  blogSavetoDB,
-  showAllBlog,
-  blogUpdatefromDB,
-} = require("../services/blog.service");
+//blogcontroller.js
+import { blogSavetoDB,myBlogs,blogUpdatefromDB,deleteAllBlog,deleteOneBlogFromDB,getPublishedBlogs,getSingleBlog } from "../services/blog.service.js";
 
-exports.saveBlogs = async (req, res) => {
+export const createBlogs = async (req, res) => {
+
   console.log("request from backend for saveBlog is", req.body);
-  const { userId, blogtitle, blogContent } = req.body; //here the userId is coming from json , what to do?
+
+  const {blogtitle,blogContent,isPublished }=req.body;
+  const {userId} = req.user;
   try {
-    const result = await blogSavetoDB(userId, blogtitle, blogContent);
-    res.status(201).json({ message: "Blog saved", result });
+    const result = await blogSavetoDB(userId, blogtitle, blogContent,isPublished );
+    res.status(201).json({ message: "Blog saved",blogId:result._id , result});
   } catch (error) {
     res
       .status(400)
@@ -17,25 +17,25 @@ exports.saveBlogs = async (req, res) => {
   }
 };
 
-exports.showBlogs = async (req, res) => {
+export const showMyBlog = async (req, res) => {
   try {
-    const id = req.user.id;
-    // console.log("user id is",id);
-    const result = await showAllBlog(id);
-    res.status(201).json({ message: "Blog is", result });
+    const { userId } = req.user;
+    const result = await myBlogs(userId);
+    res.status(200).json({ message: "Blog is", result });
   } catch (error) {
     res
       .status(500) //did we use 500 for fetching error?
-      .json({ error: "Blog  Failed to show", message: error.message });
+      .json({ message: error.message });
   }
 };
 
-exports.updateBlogs = async (req, res) => {
-  const { blogtitle, blogContent } = req.body;
+export const updateBlogs = async (req, res) => {
+  const { blogtitle, blogContent,isPublished } = req.body;
   try {
-    const id = req.user.id;
-    const result = await blogUpdatefromDB(id, blogContent, blogtitle);
-    res.status(201).json({ message: "Blog is updated", result });
+    const blog = req.blog;//got the whole blog cause of ownershiMiddle
+    // console.log("the blog from update blog is  is",blog.);
+    const result = await blogUpdatefromDB(blog._id, blogContent, blogtitle,isPublished);
+    res.status(200).json({ message: "Blog is updated", result });
   } catch (error) {
     res
       .status(500)
@@ -43,9 +43,81 @@ exports.updateBlogs = async (req, res) => {
   }
 };
 
-/*
-exports.deleteBlogs = async (req, res) => {
+
+export const deleteoneblog = async(req,res) =>{
   try {
-  } catch (error) {}
+    const id = req.blog._id;
+    console.log('blog id is',id);
+    const result = await deleteOneBlogFromDB(id);
+    return res.status(200).json({
+      message: "Blog deleted successfully",
+    });
+  } catch (error) {
+        res
+      .status(500)
+      .json({ error: "Blog Failed to delete", message: error.message });
+  }
 };
- */
+
+
+export const deleteallblogs = async(req,res) =>{
+  try {
+    const {userId}=req.user;
+    const result = await deleteAllBlog(userId);
+    return res.status(200).json({
+      message: "All blogs deleted successfully",
+      deletedCount: result.deletedCount,
+    });
+  } catch (error) {
+        res
+      .status(500)
+      .json({ error: "All Blog Failed to delete",
+         message: error.message 
+        });
+  }
+};
+
+
+export const getpublishedblogs = async(req,res)=>{
+  try {
+    const result = await getPublishedBlogs();
+    return res.status(200).json({
+      "blog":result
+    });
+  } catch (error) {
+    res.status(500).json({
+      message:"blog not found",
+    })
+  }
+}
+
+export const getsingleblog = async (req, res)=>{
+  try {
+    const blogId = req.blog._id;
+    const user = req.user;//may be undefined
+    console.log(user);
+
+    const blog = await getSingleBlog(blogId);
+    console.log(blog);
+
+    if(blog.isPublished){ //if published -> anyone can read
+      console.log("thsiis insise the blogispublished")
+      return res.status(200).json({
+      "blog":blog
+    });
+    }
+    
+   // If NOT published → only owner or admin
+  if(user && blog.userId.toString()=== user.userId.toString() || user.role==="admin" ){
+      return res.status(200).json({
+      "blog":blog
+    });
+  }
+
+  } catch (error) {
+        res.status(500).json({
+      message:"blog not found",
+      error:error.message
+    })
+  }
+}

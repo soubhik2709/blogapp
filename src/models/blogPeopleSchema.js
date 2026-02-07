@@ -1,8 +1,7 @@
 // User can like , sh, com
 
-const mongoose = require("mongoose");
-
-const blogPerson = new mongoose.Schema(
+import mongoose from "mongoose";
+const blogPersonSchema = new mongoose.Schema(
   {
     name: {
       type: String,
@@ -33,8 +32,8 @@ const blogPerson = new mongoose.Schema(
   { timestamps: true },
 );
 
-module.exports =
-  mongoose.models.blogperson || mongoose.model("blogperson", blogPerson);
+  const blogPeopleSchema =  mongoose.models.blogperople || mongoose.model("blogpeople", blogPersonSchema);
+  export default blogPeopleSchema;
 
 /*   
   Todo -->

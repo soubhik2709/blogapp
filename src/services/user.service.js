@@ -32,21 +32,49 @@ export const deleteUser = async (userId, password) => {
 
 
 //paginations
-export const findDataPagination = async (userId, cursorId) => {
+export const findDataPagination = async (userId, cursorId,filters) => {
   const limit = 4;
-  const query = {
+
+ //allowed filters 
+ const allowedFilters = [
+  "blogtitle",
+  "isPublished",
+ ];
+
+   const query = {
    userId:new Types.ObjectId(userId),
-  isPublished:true
  };
 
+//dynamic query building
+for (let [key,value] of Object.entries(filters)){
+  if(!allowedFilters.includes(key))continue;
+
+  if(key==="isPublished"){
+    query[key]=value ==="true";
+  }
+  else if(key === "blogtitle"){
+    query[key] ={
+      $regex:value.trim(), //find the document which contain the this given value then trim means remove white spaces.
+      $options:"i" //for Ram or ram or RAM
+    };
+  }
+  else {
+    query[key]=value;
+  }
+}
+
+  // 🔹 Cursor pagination
   if (cursorId && Types.ObjectId.isValid(cursorId)) {
     query._id = { $gt: new  Types.ObjectId(cursorId)
      };
   }
+
+// console.log("the query is ",query);
+
   const result = await blogDetailSchema.find(query).sort({_id:1}).limit(limit+1);
   
   const hasMore = result.length>limit;
-  if(hasMore)result.pop();
+  if(hasMore)result.pop();//pop() removes the last element.
 
   const cursors = result.length ? result[result.length - 1]._id: null; // next cursorId
   return {
@@ -56,3 +84,20 @@ export const findDataPagination = async (userId, cursorId) => {
   };
 };
 // tried to code in the buisness logic
+
+
+/* 
+Next filtering todoSteps-->
+Advanced filtering like:
+?age[gte]=20&age[lte]=40
+
+Sorting dynamic:
+?sort=createdAt,-age
+
+Production-grade search engine pattern
+Preventing MongoDB injection
+Multi-field cursor pagination
+
+
+
+*/

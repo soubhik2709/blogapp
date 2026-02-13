@@ -52,3 +52,26 @@ Query optimization
 Indexing
 Query composition
 Avoiding overfetching
+
+
+note-->
+What is Object.entries(filters)?
+before filters was this 
+filters = {
+  age: "25",
+  isPublished: "true",
+  city: "Delhi"
+}
+
+now-->
+Object.entries() converts an object into an array of key-value pairs.
+Example:
+Object.entries(filters)
+Becomes:
+[
+  ["age", "25"],
+  ["isPublished", "true"],
+  ["city", "Delhi"]
+]
+
+So now it’s an array of arrays.

@@ -29,14 +29,17 @@ export const deleteuser = async(req, res)=>{
 export const findData = async (req, res) => {
 
 const userId = req.params.userId;
-const cursorId = req.query.nextCursor;
+
+//dynamic filterization 
+const{cursorId , ...filters} = req.query;
+// console.log("the nextCursorId is ",cursorId , "the filter is ",filters);
 
 if(!userId)return res.status(400).json({
 message:"userId is not given"
 });
 
 try {
-  const result = await findDataPagination(userId, cursorId);
+  const result = await findDataPagination(userId, cursorId,filters);
 
   return res.status(200).json({
       message: "The result is",

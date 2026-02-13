@@ -24,7 +24,7 @@ export const myBlogs = async (userId) => {
 
 //blog updated
 export const blogUpdatefromDB = async (blogId, content, title, isPublished) => {
-  console.log("id , title, content is", blogId, title, content, isPublished);
+  // console.log("id , title, content is", blogId, title, content, isPublished);
 
   const updateData = {
     ...(title && { blogtitle: title }),
@@ -32,7 +32,7 @@ export const blogUpdatefromDB = async (blogId, content, title, isPublished) => {
     ...(isPublished !== undefined && {
       isPublished: isPublished === true || isPublished === "true",
     }),
-  };
+  }; //...false does nothing
 
   const updatedPost = await blogDetailSchema.findOneAndUpdate(
     { _id: blogId },

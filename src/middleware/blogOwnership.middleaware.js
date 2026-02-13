@@ -26,7 +26,7 @@ const blogOwnershipMiddleware = async (req, res, next) => {
       return res.status(404).json({
         message: "blog is not Found",
       });
-// console.log("blogExist is ",blogExist);
+console.log("blogExist is ",blogExist);
 // console.log("\n blogExist userId is",blogExist.userId.toString());
     // 2️⃣ Admin override. admin have all permissions
     if (role === "admin") {

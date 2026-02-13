@@ -15,8 +15,8 @@ app.use(express.urlencoded({extended:false}));//use of this?
 
 //routes redirect
 app.use("/api/auth",authRoutes);
-app.use("/api/auth/users",userRoutes);
-app.use("/api/users/blog",blogRoutes);
+app.use("/api/users",userRoutes);
+app.use("/api/blogs",blogRoutes);
 
 
 export default app;

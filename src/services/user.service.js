@@ -1,7 +1,10 @@
 //src/service/user.service.js
 
 import blogPeopleSchema from "../models/blogPeopleSchema.js";
-import bcrypt from "bcryptjs"
+import blogDetailSchema from "../models/blogschema.js";
+import bcrypt from "bcryptjs";
+import mongoose from "mongoose";
+import { Types } from "mongoose";
 
 export const updatePassword = async (email, oldPassword, newPassword) => {
   const userExist = await blogPeopleSchema.findOne({ email });
@@ -25,3 +28,31 @@ export const deleteUser = async (userId, password) => {
 
 
 //make forgetpassword, 
+
+
+
+//paginations
+export const findDataPagination = async (userId, cursorId) => {
+  const limit = 4;
+  const query = {
+   userId:new Types.ObjectId(userId),
+  isPublished:true
+ };
+
+  if (cursorId && Types.ObjectId.isValid(cursorId)) {
+    query._id = { $gt: new  Types.ObjectId(cursorId)
+     };
+  }
+  const result = await blogDetailSchema.find(query).sort({_id:1}).limit(limit+1);
+  
+  const hasMore = result.length>limit;
+  if(hasMore)result.pop();
+
+  const cursors = result.length ? result[result.length - 1]._id: null; // next cursorId
+  return {
+    data: result,
+    nextCursor: cursors,
+    hasMore
+  };
+};
+// tried to code in the buisness logic

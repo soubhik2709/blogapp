@@ -32,7 +32,7 @@ const blogPersonSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-  const blogPeopleSchema =  mongoose.models.blogperople || mongoose.model("blogpeople", blogPersonSchema);
+  const blogPeopleSchema =  mongoose.models.blogpeople || mongoose.model("blogpeople", blogPersonSchema);
   export default blogPeopleSchema;
 
 /*   

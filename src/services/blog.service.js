@@ -1,5 +1,5 @@
 // blogservice.js
-
+import mongoose, { Types } from "mongoose";
 import blogDetailSchema from "../models/blogschema.js";
 
 //create or blog save to database
@@ -24,18 +24,18 @@ export const myBlogs = async (userId) => {
 
 //blog updated
 export const blogUpdatefromDB = async (blogId, content, title, isPublished) => {
-  console.log("id , title, content is",blogId, title, content, isPublished);
+  console.log("id , title, content is", blogId, title, content, isPublished);
 
   const updateData = {
-    ...(title && {blogtitle:title}),
-    ...(content && {blogContent: content}),
+    ...(title && { blogtitle: title }),
+    ...(content && { blogContent: content }),
     ...(isPublished !== undefined && {
       isPublished: isPublished === true || isPublished === "true",
     }),
   };
 
   const updatedPost = await blogDetailSchema.findOneAndUpdate(
-    { _id:blogId },
+    { _id: blogId },
     updateData,
     { new: true, runValidators: true },
   );
@@ -43,31 +43,53 @@ export const blogUpdatefromDB = async (blogId, content, title, isPublished) => {
   return updatedPost;
 };
 
-
 // delete one blog
-export const deleteOneBlogFromDB =async(id)=>{
+export const deleteOneBlogFromDB = async (id) => {
   const result = await blogDetailSchema.findByIdAndDelete(id);
-  console.log("delte one blog is ",result);
- return result;
-}
+  console.log("delte one blog is ", result);
+  return result;
+};
 
 //delete all blogs
-export const deleteAllBlog = async (userId)=>{
-return await blogDetailSchema.deleteMany({userId});
-}
+export const deleteAllBlog = async (userId) => {
+  return await blogDetailSchema.deleteMany({ userId });
+};
 
 //get isPublished blog
-export const getPublishedBlogs = async ()=>{
-  const result = await blogDetailSchema.findOne({isPublished:true});
- return result;
-}
+export const getPublishedBlogs = async () => {
+  const result = await blogDetailSchema.findOne({ isPublished: true });
+  return result;
+};
 
 //getSingleBlog
-export const getSingleBlog = async(blogId)=>{
+export const getSingleBlog = async (blogId) => {
   const result = await blogDetailSchema.findById(blogId);
   return result;
-}
+};
 
+
+
+
+
+
+
+
+
+
+
+
+/*
+Note->
+find() returns the array
+2.Every pagination query needs TWO filters:
+one for ownership (userId) and one for continuation (cursor).
+
+doubt-->
+
+1.change the name of this functions
+2.should i use userId or the blogId to query the blog and fetch the details from the postman?
+
+ */
 
 /* 
 if blogPerson is user or admin  then he can acccess the blog 

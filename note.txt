@@ -1,23 +1,8 @@
-blog system question
-for step 1 
-🧠 Core Concepts You’re Learning Here
-
-API boundary definition
-
-Role-based access control (RBAC)
-
-Separation of responsibilities
-
-Saying NO to feature creep
-
-
 
 i have to make -->
 landingpage , create blog ,show post, account, public   Name- blogApp
 blog page, every blog post is showing , public page.    Name -userblogs
 blog create , every blog is create , private page.      Name - blogCreate
-
-
 
 
 Todo-->
@@ -39,31 +24,10 @@ db.users.aggregate([
 
 
 
-
-
 doubt-->
 1.how to use populate in mongodb to get all the user blog?
 2.what is the difference between formdata and json?
 3.when use this different url-->/showblog?userId=69804bab... vs /showblog/:userId: , when to use which one 
-
-
-
-
-
-address --->
-http://localhost:9000/api/users/auth/register --register
-http://localhost:9000/api/users/blog/saveblog  --saveblog
-http://localhost:9000/api/users/blog/showblog/  --showblog
-
-
-
-
-ram id -->69804bab34294a49af0986e4
-
-db.blogschemas.findbyId('698056b9b06b0b24d05d39ce')
-
-
-
 
 After logout the accessToken is valid untill its expire, so i can get access the protected route. so solution is 
 🔴 Option 1: Access-token blacklist (rare)
@@ -73,3 +37,18 @@ Middleware checks blacklist
 ❌ Heavy
 ❌ Slower
 ❌ Rarely worth it
+
+
+NextTask-->08022026
+
+Learn while adding:
+Pagination
+Filtering
+Sorting
+Search
+
+What concepts you’ll learn
+Query optimization
+Indexing
+Query composition
+Avoiding overfetching

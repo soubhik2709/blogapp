@@ -1,10 +1,12 @@
 import express from "express";
 const router = express.Router();
-// const authMiddleware = require("../middleware/auth.middleware");
+import authMiddleware from "../middleware/auth.middleware.js";
+import {updateUserPassword,deleteuser,findData} from "../controllers/user.controller.js";
 
-import {updateUserPassword,deleteuser} from "../controllers/user.controller.js";
+//Cursor-Based Pagination
+router.get("/:userId/blogs",findData);
 
-// router.use(authMiddleware);
+router.use(authMiddleware);
 router.post("/updatepassword",updateUserPassword);
 router.post("/deleteUser",deleteuser);
 

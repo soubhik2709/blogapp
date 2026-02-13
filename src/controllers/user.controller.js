@@ -1,5 +1,6 @@
 
- import {updatePassword,deleteUser} from  "../services/user.service.js"
+ import {updatePassword,deleteUser,findDataPagination} from  "../services/user.service.js";
+ 
 export const updateUserPassword = async(req, res)=>{
     const {email, oldPassword, newPassword} = req.body;
     try {
@@ -22,3 +23,32 @@ export const deleteuser = async(req, res)=>{
                 return res.status(400).json({message:"cannot delete user",error:error.message});
     }
 }
+
+
+//paginations --public 
+export const findData = async (req, res) => {
+
+const userId = req.params.userId;
+const cursorId = req.query.nextCursor;
+
+if(!userId)return res.status(400).json({
+message:"userId is not given"
+});
+
+try {
+  const result = await findDataPagination(userId, cursorId);
+
+  return res.status(200).json({
+      message: "The result is",
+      data: result,
+    });
+    
+} catch (error) {
+  console.log("error is",error)
+      res.status(400).json({
+      message: "blog not found",
+      error: error.message,
+    });
+}
+
+};

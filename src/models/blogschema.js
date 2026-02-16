@@ -25,6 +25,23 @@ const blogSchema = new mongoose.Schema({
 
 },{timestamps:true});
 
+blogSchema.index(//what index mean? how mongodb stores in db?& use this ?
+{
+  blogtitle:"text",//what can i write instead of text in use cases?
+  blogContent:"text"
+},
+{
+  weights:{
+    blogtitle:5,
+    blogContent:1,
+  },
+  name:"BlogTextIndex",
+}
+
+);//how this is work? and how mongo store and use this ?
+
+
+
 const blogDetailSchema = mongoose.models.blogschema || mongoose.model("blogschema", blogSchema);
 
 export default blogDetailSchema;

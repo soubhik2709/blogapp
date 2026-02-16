@@ -141,8 +141,6 @@ input is --sort is  -createdAt,updatedAt,-age
 output is sortOption is { createdAt: -1, updatedAt: 1 } */
 };
 
-
-
 //4.applyCursorPagination
 const applyCursorPagination = async (query, cursorId, sortOption) => {
   const firstSortField = Object.keys(sortOption)[0] || "_id"; //eg. createdAt
@@ -225,9 +223,6 @@ const executePagination = async(query, sortOption, limit) => {
   };
 }
 
-
-
-
 /* 
 userId needed
 cursorId needed
@@ -237,42 +232,102 @@ query value is (filters)--> isPublished,blogtitle
 */
 //--------------------------------------------------------------------
 
+//searchFeature service
+
+// export const getBlogs = async(queryParams)=>{
+//   const {search , limit =10, cursorId} = queryParams;
+//   console.log("the search",search,"limit is",limit,"cursorId",cursorId);
+
+
+// let filter = {};
+// let sort = {createAt:-1};
+// let projection = {};//what is this use for?
+
+// if(search){
+//   filter.$text = {$search:search};
+// }
+// console.log("the search is ",search);//how to se the $search:keyword
+
+// //Add relevance Score
+// projection.score = {$meta:"textScore"};
+
+// sort = {score:{$meta:"textScore"}};
+
+// if(cursorId){
+//   filter._id = {$lt:cursorId}//why lt not gt?
+// }
+
+// const blogs = await blogDetailSchema.find(filter,projection).sort(sort).limit(Number(limit));
+
+// return blogs;//should i return the cursorId ?
+// }
+
+export const getBlogs = async(queryParams)=>{
+  const {q, limit=10,cursorId} = queryParams;
+  console.log("the search",q,"limit is",limit,"cursorId",cursorId);
+  
+
+
+  let filter = {};
+  let sort = {createdAt:-1};
+  let projection = {};//projection is which fields are going to return from mongodb.
+
+  if(q){
+    filter.$text = {$search:q};
+    projection.score ={$meta:"textScore"};
+    sort = {score:{$meta:"textScore"}};
+  };
+
+  if(cursorId){
+    filter._id = {$lt:new mongoose.Types.ObjectId(cursorId)};
+  }
+
+  const blogs = await blogDetailSchema.find(filter,projection).sort(sort).limit(Number(limit));
+  return blogs;
+}
 
 
 
 
 
+// $text, $search mean?
+/* 
+When you use:{ $text: { $search: "mongodb" } }
+
+MongoDB internally calculates a relevance score for each document.
+
+That score:
+Is NOT stored in your document
+Is NOT visible by default
+Exists only during that query
+
+To access it, you must explicitly request it using:{ score: { $meta: "textScore" } }
 
 
 
+Projection controls which fields are returned from MongoDB.
+Example:db.blogs.find({}, { title: 1, content: 1 })
+This returns only:title & content
 
+projection.score ={$meta:"textScore"} means “Add a new field called score in the result cause the score will come as a result while query time, and fill it with MongoDB’s calculated text relevance score.”
 
+*/
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  
 /* 
 Next filtering todoSteps-->
+✅ Pagination (done)
+➡ Input validation middleware
+➡ Centralized error handling
+➡ Response structure standardization
+➡ MongoDB indexing optimization
+➡ Advanced JWT auth
+➡ Role-based authorization
+➡ Security middleware
+➡ Logging
+➡ Unit testing
+
+
 Advanced filtering like:
 ?age[gte]=20&age[lte]=40
 

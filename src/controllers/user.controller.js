@@ -3,7 +3,7 @@ import {
   deleteUser,
   findDataPagination,
   getBlogs,
-  LikeBlog,
+  toggleLikeBlog,
 } from "../services/user.service.js";
 
 export const updateUserPassword = async (req, res) => {
@@ -81,14 +81,14 @@ export const getBlogsController = async (req, res) => {
 };
 
 //like feature
-export const getLikeBlog = async (req, res) => {
+export const toggleLikeController = async (req, res) => {
   const {userId}=req.user;
   const {blogId} = req.params;
   console.log("usrid & blog Id is ",userId, blogId);
 
   try {
 
-    const result = await LikeBlog(userId, blogId);
+    const result = await toggleLikeBlog(userId, blogId);
     return res.status(201).json({
       success:true,
       data:result,

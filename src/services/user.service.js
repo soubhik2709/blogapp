@@ -362,24 +362,27 @@ If undefined → default to 1
 
 
 
-export const LikeBlog = async(userId, blogId)=>{
-//if user allready like then blogIndex will throw the error
-try {
-  const like = await blogLikeModel.create({
+export const toggleLikeBlog = async(userId, blogId)=>{
+//if user allready like then blogIndex will throw the error,but it can not delte the same exist  user
+
+const existingLike = await blogLikeModel.findOneAndDelete({
+  userId,blogId
+});//doc not find then return null
+
+if(existingLike){
+  return {
+    message:"like removed",
+    liked:false};
+}
+
+await blogLikeModel.create({
     userId,
     blogId,
   });
-  return like;
+  return {
+    message:"like added",
+    liked:true};
 
-} catch (error) {
-  if(error.code === 11000){
-    //11000 is duplicate key 
-     const err = new Error("You already liked this blog");
-      err.statusCode = 409;//That’s a 3-layer transformation.
-      throw err;
-  }
-  throw error;
-}
 }
 
 

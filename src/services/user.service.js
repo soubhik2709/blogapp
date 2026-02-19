@@ -5,6 +5,7 @@ import blogDetailSchema from "../models/blogschema.js";
 import bcrypt from "bcryptjs";
 import mongoose from "mongoose";
 import { Types } from "mongoose";
+import blogLikeModel from "../models/blogLike.js"
 
 export const updatePassword = async (email, oldPassword, newPassword) => {
   const userExist = await blogPeopleSchema.findOne({ email });
@@ -359,3 +360,51 @@ If undefined → default to 1
 
 */
 
+
+
+export const LikeBlog = async(userId, blogId)=>{
+//if user allready like then blogIndex will throw the error
+try {
+  const like = await blogLikeModel.create({
+    userId,
+    blogId,
+  });
+  return like;
+
+} catch (error) {
+  if(error.code === 11000){
+    //11000 is duplicate key 
+     const err = new Error("You already liked this blog");
+      err.statusCode = 409;//That’s a 3-layer transformation.
+      throw err;
+  }
+  throw error;
+}
+}
+
+
+/* 
+
+1.Database Constraint + Service-Level Error Translation
+MongoDB throws:
+E11000 duplicate key error
+Service translates it into:
+"You already liked this blog"
+Controller translates that into:
+HTTP 409 Conflict
+That’s a 3-layer transformation.
+
+
+
+2.reasons of service layer trycatch
+Handles DB-specific logic
+Hides MongoDB internals
+Throws clean application error
+------------------------------
+reasons of controller layer trycatch
+Translate business errors → HTTP response
+
+3.
+
+
+*/

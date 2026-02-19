@@ -3,6 +3,7 @@ import {
   deleteUser,
   findDataPagination,
   getBlogs,
+  LikeBlog,
 } from "../services/user.service.js";
 
 export const updateUserPassword = async (req, res) => {
@@ -64,7 +65,7 @@ export const findData = async (req, res) => {
 
 //search feature
 export const getBlogsController = async (req, res) => {
-  console.log("the req.qurey from controller",req.query.q);
+  console.log("the req.qurey from controller", req.query.q);
   try {
     const blogs = await getBlogs(req.query);
     res.status(200).json({
@@ -73,6 +74,28 @@ export const getBlogsController = async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+//like feature
+export const getLikeBlog = async (req, res) => {
+  const {userId}=req.user;
+  const {blogId} = req.params;
+  console.log("usrid & blog Id is ",userId, blogId);
+
+  try {
+
+    const result = await LikeBlog(userId, blogId);
+    return res.status(201).json({
+      success:true,
+      data:result,
+    });
+
+  } catch (error) {
+    return res.status(error.statusCode || 500).json({
       success: false,
       message: error.message,
     });

@@ -5,7 +5,8 @@ import blogDetailSchema from "../models/blogschema.js";
 import bcrypt from "bcryptjs";
 import mongoose from "mongoose";
 import { Types } from "mongoose";
-import blogLikeModel from "../models/blogLike.js"
+import blogLikeModel from "../models/blogLike.js";
+import BlogCommentModel from "../models/blogComment.js";
 
 export const updatePassword = async (email, oldPassword, newPassword) => {
   const userExist = await blogPeopleSchema.findOne({ email });
@@ -385,7 +386,6 @@ await blogLikeModel.create({
 
 }
 
-
 /* 
 
 1.Database Constraint + Service-Level Error Translation
@@ -411,3 +411,79 @@ Translate business errors → HTTP response
 
 
 */
+
+
+
+//comment and reply
+export const commentBlog = async (userId,blogId,commentText,parentCommentId=null)=>{
+
+if(!Types.ObjectId.isValid(blogId)) throw new Error("Invalid blogId");
+if(parentCommentId && !Types.ObjectId.isValid(parentCommentId))throw new Error("Invalid parentCommentId");
+
+const trimComment = commentText?.trim();
+if(!trimComment || trimComment.length === 0) throw new Error("comment cannot be empty");
+
+if(trimComment.length > 200){
+  throw  new Error("Maximum comment length is 200 characters");
+}
+
+const blogExist = await blogDetailSchema.findById(blogId);
+if(!blogExist) throw new Error (`blog not exist on this blogId${blogId}`);//"Blog not found"
+
+
+   if(parentCommentId){
+  const PcomentExist = await BlogCommentModel.findById(parentCommentId);
+  if(!PcomentExist) throw new Error ("parentComment not found");
+  if(!PcomentExist.blogId.equals(blogId))throw new Error("Parent comment does not belong to this blog");
+  //why do i need this? i allready mapped the blogId with parentComment, if that was correct then why recheck?
+
+  if(PcomentExist.isDeleted) throw new Error("Cannot reply to a deleted comment");// i allready check it is exist or not , then how and why?is it beacause of soft delete?
+
+   }
+const comment = await BlogCommentModel.create(
+  {
+    userId,
+    blogId,
+    commentText:trimComment,
+    parentCommentId,  
+
+  });
+
+await blogDetailSchema.findByIdAndUpdate(blogId,{
+  $inc:{commentCount:1},//if field not created then it can create
+});
+  return comment;
+
+   /* 
+   Note->
+
+   1.If I already mapped blogId with parentComment perfectly, why recheck?
+   Because users control API input.Someone can send:
+  blogId = A
+  parentCommentId = commentFromBlogB
+   
+   
+2.If I already check parent exists, why check deleted?
+Because soft delete means:
+Document still exists in DB
+but isDeleted = true
+So:
+findById()
+will return document even if deleted.
+   
+   
+   
+   */
+}
+
+
+
+
+
+
+
+
+
+
+
+

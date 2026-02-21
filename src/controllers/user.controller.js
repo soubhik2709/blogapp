@@ -4,6 +4,7 @@ import {
   findDataPagination,
   getBlogs,
   toggleLikeBlog,
+  commentBlog,
 } from "../services/user.service.js";
 
 export const updateUserPassword = async (req, res) => {
@@ -87,7 +88,7 @@ export const toggleLikeController = async (req, res) => {
   console.log("usrid & blog Id is ",userId, blogId);
 
   try {
-
+ 
     const result = await toggleLikeBlog(userId, blogId);
     return res.status(201).json({
       success:true,
@@ -101,3 +102,28 @@ export const toggleLikeController = async (req, res) => {
     });
   }
 };
+
+
+//comment and reply 
+export const commentBlogController = async (req, res)=>{
+  const {userId} = req.user;
+  const {blogId} = req.params;
+  const {commentText , parentCommentId}= req.body;
+
+  console.log("At commment controller \n BlogId",blogId,"\n commentText",commentText,"\n prentCommentId",parentCommentId);
+
+ try {
+  const result  = await commentBlog(userId,blogId,commentText,parentCommentId);
+      return res.status(201).json({
+      success: true,
+      data: result,
+    });
+
+ } catch (error) {
+      return res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+ }
+
+}

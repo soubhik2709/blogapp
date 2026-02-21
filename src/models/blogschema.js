@@ -21,7 +21,11 @@ const blogSchema = new mongoose.Schema({
   isPublished:{
     type:Boolean,
     default:false,
-  }
+  },
+    commentCount:{
+     type:Number,
+      default: 0,
+    },
 
 },{timestamps:true});
 

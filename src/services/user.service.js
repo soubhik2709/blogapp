@@ -47,7 +47,7 @@ export const findDataPagination = async (userId, cursorId, sort, filters) => {
     query = await applyCursorPagination(query, cursorId, sortOption);
   }
 
-  return await executePagination(query , sortOption, limit);
+  return await executePagination(query, sortOption, limit);
 };
 
 // private helper functions for pagination (not exported) ----------------------------------
@@ -156,14 +156,13 @@ const applyCursorPagination = async (query, cursorId, sortOption) => {
   //console.log("the lastDoc is",lastDoc);
 
   //If sorting done by _id
- else if (firstSortField === "_id") {
+  else if (firstSortField === "_id") {
     query._id =
       sortFieldsDirect === 1 ? { $gt: lastDoc._id } : { $lt: lastDoc._id };
   }
 
   //Multi-field cursor in else part
   else {
-
     const cursorValue = lastDoc[firstSortField];
     // console.log("the cursurValue is ", cursorValue);
 
@@ -211,10 +210,13 @@ inShort ->It modifies the query to fetch the next page.
 };
 
 //5.query execution Pagination
-const executePagination = async(query, sortOption, limit) => {
-  const result = await blogDetailSchema.find(query).sort(sortOption).limit(limit+1);
+const executePagination = async (query, sortOption, limit) => {
+  const result = await blogDetailSchema
+    .find(query)
+    .sort(sortOption)
+    .limit(limit + 1);
   // console.log("The result from execute is",result);
-  const hasMore = result.length > limit; 
+  const hasMore = result.length > limit;
   if (hasMore) result.pop(); //pop() removes the last element.
 
   const nextCursor = result.length ? result[result.length - 1]._id : null; // next cursorId
@@ -223,7 +225,7 @@ const executePagination = async(query, sortOption, limit) => {
     nextCursor,
     hasMore,
   };
-}
+};
 
 /* 
 userId needed
@@ -239,7 +241,6 @@ query value is (filters)--> isPublished,blogtitle
 // export const getBlogs = async(queryParams)=>{
 //   const {search , limit =10, cursorId} = queryParams;
 //   console.log("the search",search,"limit is",limit,"cursorId",cursorId);
-
 
 // let filter = {};
 // let sort = {createAt:-1};
@@ -264,33 +265,30 @@ query value is (filters)--> isPublished,blogtitle
 // return blogs;//should i return the cursorId ?
 // }
 
-export const getBlogs = async(queryParams)=>{
-  const {q, limit=10,cursorId} = queryParams;
-  console.log("the search",q,"limit is",limit,"cursorId",cursorId);
-  
-
+export const getBlogs = async (queryParams) => {
+  const { q, limit = 10, cursorId } = queryParams;
+  console.log("the search", q, "limit is", limit, "cursorId", cursorId);
 
   let filter = {};
-  let sort = {createdAt:-1};
-  let projection = {};//projection is which fields are going to return from mongodb.
+  let sort = { createdAt: -1 };
+  let projection = {}; //projection is which fields are going to return from mongodb.
 
-  if(q){
-    filter.$text = {$search:q};
-    projection.score ={$meta:"textScore"};
-    sort = {score:{$meta:"textScore"}};
-  };
-
-  if(cursorId){
-    filter._id = {$lt:new mongoose.Types.ObjectId(cursorId)};
+  if (q) {
+    filter.$text = { $search: q };
+    projection.score = { $meta: "textScore" };
+    sort = { score: { $meta: "textScore" } };
   }
 
-  const blogs = await blogDetailSchema.find(filter,projection).sort(sort).limit(Number(limit));
+  if (cursorId) {
+    filter._id = { $lt: new mongoose.Types.ObjectId(cursorId) };
+  }
+
+  const blogs = await blogDetailSchema
+    .find(filter, projection)
+    .sort(sort)
+    .limit(Number(limit));
   return blogs;
-}
-
-
-
-
+};
 
 // $text, $search mean?
 /* 
@@ -315,7 +313,6 @@ projection.score ={$meta:"textScore"} means “Add a new field called score in t
 
 */
 
-  
 /* 
 Next filtering todoSteps-->
 ✅ Pagination (done)
@@ -361,30 +358,30 @@ If undefined → default to 1
 
 */
 
+export const toggleLikeBlog = async (userId, blogId) => {
+  //if user allready like then blogIndex will throw the error,but it can not delte the same exist  user
 
+  const existingLike = await blogLikeModel.findOneAndDelete({
+    userId,
+    blogId,
+  }); //doc not find then return null
 
-export const toggleLikeBlog = async(userId, blogId)=>{
-//if user allready like then blogIndex will throw the error,but it can not delte the same exist  user
+  if (existingLike) {
+    return {
+      message: "like removed",
+      liked: false,
+    };
+  }
 
-const existingLike = await blogLikeModel.findOneAndDelete({
-  userId,blogId
-});//doc not find then return null
-
-if(existingLike){
-  return {
-    message:"like removed",
-    liked:false};
-}
-
-await blogLikeModel.create({
+  await blogLikeModel.create({
     userId,
     blogId,
   });
   return {
-    message:"like added",
-    liked:true};
-
-}
+    message: "like added",
+    liked: true,
+  };
+};
 
 /* 
 
@@ -412,49 +409,57 @@ Translate business errors → HTTP response
 
 */
 
-
-
 //comment and reply
-export const commentBlog = async (userId,blogId,commentText,parentCommentId=null)=>{
+export const commentBlog = async (
+  userId,
+  blogId,
+  commentText,
+  parentCommentId = null,
+) => {
+  if (!Types.ObjectId.isValid(blogId)) throw new Error("Invalid blogId");
+  if (parentCommentId && !Types.ObjectId.isValid(parentCommentId))
+    throw new Error("Invalid parentCommentId");
 
-if(!Types.ObjectId.isValid(blogId)) throw new Error("Invalid blogId");
-if(parentCommentId && !Types.ObjectId.isValid(parentCommentId))throw new Error("Invalid parentCommentId");
+  const trimComment = commentText?.trim();
+  if (!trimComment || trimComment.length === 0)
+    throw new Error("comment cannot be empty");
 
-const trimComment = commentText?.trim();
-if(!trimComment || trimComment.length === 0) throw new Error("comment cannot be empty");
+  if (trimComment.length > 200) {
+    throw new Error("Maximum comment length is 200 characters");
+  }
 
-if(trimComment.length > 200){
-  throw  new Error("Maximum comment length is 200 characters");
-}
+  const blogExist = await blogDetailSchema.findById(blogId);
+  if (!blogExist) throw new Error(`blog not exist on this blogId${blogId}`); //"Blog not found"
 
-const blogExist = await blogDetailSchema.findById(blogId);
-if(!blogExist) throw new Error (`blog not exist on this blogId${blogId}`);//"Blog not found"
+  if (parentCommentId) {
+    const PcomentExist = await BlogCommentModel.findById(parentCommentId);
+    if (!PcomentExist) throw new Error("parentComment not found");
+    if (!PcomentExist.blogId.equals(blogId))
+      throw new Error("Parent comment does not belong to this blog");
+    //why do i need this? i allready mapped the blogId with parentComment, if that was correct then why recheck?
 
-
-   if(parentCommentId){
-  const PcomentExist = await BlogCommentModel.findById(parentCommentId);
-  if(!PcomentExist) throw new Error ("parentComment not found");
-  if(!PcomentExist.blogId.equals(blogId))throw new Error("Parent comment does not belong to this blog");
-  //why do i need this? i allready mapped the blogId with parentComment, if that was correct then why recheck?
-
-  if(PcomentExist.isDeleted) throw new Error("Cannot reply to a deleted comment");// i allready check it is exist or not , then how and why?is it beacause of soft delete?
-
-   }
-const comment = await BlogCommentModel.create(
-  {
+    if (PcomentExist.isDeleted)
+      throw new Error("Cannot reply to a deleted comment"); // i allready check it is exist or not , then how and why?is it beacause of soft delete?
+  }
+  const comment = await BlogCommentModel.create({
     userId,
     blogId,
-    commentText:trimComment,
-    parentCommentId,  
-
+    commentText: trimComment,
+    parentCommentId,
   });
 
-await blogDetailSchema.findByIdAndUpdate(blogId,{
-  $inc:{commentCount:1},//if field not created then it can create
-});
-  return comment;
+  if (parentCommentId) {
+    return comment;
+  } 
+  //commentCount = number of top-level comments only. number of comments will not count with the reply
+  else {
+    await blogDetailSchema.findByIdAndUpdate(blogId, {
+      $inc: { commentCount: 1 }, //if field not created then it can create
+    });
+    return comment;
+  }
 
-   /* 
+  /* 
    Note->
 
    1.If I already mapped blogId with parentComment perfectly, why recheck?
@@ -474,16 +479,47 @@ will return document even if deleted.
    
    
    */
-}
+};
 
+// ------------------deleting comments and reply-------------
+export const deleteComment = async (userId,role, commentId) => {
 
+  if (!commentId) throw new Error("commentId not Found");
+  if (!Types.ObjectId.isValid(commentId)) throw new Error("invalid CommentId");
 
+  const validComment = await BlogCommentModel.findById(commentId);
+  if (!validComment) throw new Error("comment not found");
+  // console.log("the validCommentId is",validComment);
 
+  //if message is allready deleted. why it is call idempotent delte?
+    if (validComment.isDeleted === true) return validComment;
 
+  //authorization
+  const isOwner = validComment.userId.toString() === userId.toString();
+  console.log("the isOwner is ",isOwner);
+  // const isAdmid = role ==="admin";
 
+  if (!isOwner && !isAdmid)throw new Error ("Not Authorize to delete this comment");
 
+  await BlogCommentModel.findByIdAndUpdate(commentId,
+    {$set:{
+        isDeleted:true,
+      //  commentText: "This messge has deleted",
+      }
+    });
+ 
+  //decrement commentCount when parentCommentId : null
+  if (!validComment.parentCommentId) {
+  await  blogDetailSchema.findByIdAndUpdate(validComment.blogId, {
+      $inc: { commentCount: -1 },
+       //will this keep nested comments ,
+    });
+  }
+  return {message:"comment deleted successfully"};
+};
 
+/* 
+user and admin can delete the message
+if reply or comment delete then , comment deleted will show instead but not the reply will deleted
 
-
-
-
+*/

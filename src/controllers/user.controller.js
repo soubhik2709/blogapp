@@ -5,6 +5,7 @@ import {
   getBlogs,
   toggleLikeBlog,
   commentBlog,
+  deleteComment,
 } from "../services/user.service.js";
 
 export const updateUserPassword = async (req, res) => {
@@ -110,7 +111,7 @@ export const commentBlogController = async (req, res)=>{
   const {blogId} = req.params;
   const {commentText , parentCommentId}= req.body;
 
-  console.log("At commment controller \n BlogId",blogId,"\n commentText",commentText,"\n prentCommentId",parentCommentId);
+  // console.log("At commment controller \n BlogId",blogId,"\n commentText",commentText,"\n prentCommentId",parentCommentId);
 
  try {
   const result  = await commentBlog(userId,blogId,commentText,parentCommentId);
@@ -126,4 +127,24 @@ export const commentBlogController = async (req, res)=>{
     });
  }
 
+}
+
+//deleteComment & reply
+export const deleteCommentController = async (req, res)=>{
+  const {userId,role} = req.user;
+  const {commentId} = req.params;
+  console.log("At controller the \n userId is ",userId,"\n commentId is ",commentId,
+    "\n role is ",role);
+  try {
+    const result = await deleteComment(userId,role, commentId);
+    return res.status(200).json({
+      success:true,
+      data:result,
+      })
+  } catch (error) {
+          return res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
 }

@@ -6,6 +6,7 @@ import {
   toggleLikeBlog,
   commentBlog,
   deleteComment,
+  share,
 } from "../services/user.service.js";
 
 export const updateUserPassword = async (req, res) => {
@@ -84,18 +85,16 @@ export const getBlogsController = async (req, res) => {
 
 //like feature
 export const toggleLikeController = async (req, res) => {
-  const {userId}=req.user;
-  const {blogId} = req.params;
-  console.log("usrid & blog Id is ",userId, blogId);
+  const { userId } = req.user;
+  const { blogId } = req.params;
+  console.log("usrid & blog Id is ", userId, blogId);
 
   try {
- 
     const result = await toggleLikeBlog(userId, blogId);
     return res.status(201).json({
-      success:true,
-      data:result,
+      success: true,
+      data: result,
     });
-
   } catch (error) {
     return res.status(error.statusCode || 500).json({
       success: false,
@@ -104,47 +103,127 @@ export const toggleLikeController = async (req, res) => {
   }
 };
 
-
-//comment and reply 
-export const commentBlogController = async (req, res)=>{
-  const {userId} = req.user;
-  const {blogId} = req.params;
-  const {commentText , parentCommentId}= req.body;
+//comment and reply
+export const commentBlogController = async (req, res) => {
+  const { userId } = req.user;
+  const { blogId } = req.params;
+  const { commentText, parentCommentId } = req.body;
 
   // console.log("At commment controller \n BlogId",blogId,"\n commentText",commentText,"\n prentCommentId",parentCommentId);
 
- try {
-  const result  = await commentBlog(userId,blogId,commentText,parentCommentId);
-      return res.status(201).json({
+  try {
+    const result = await commentBlog(
+      userId,
+      blogId,
+      commentText,
+      parentCommentId,
+    );
+    return res.status(201).json({
       success: true,
       data: result,
     });
-
- } catch (error) {
-      return res.status(400).json({
-      success: false,
-      message: error.message,
-    });
- }
-
-}
-
-//deleteComment & reply
-export const deleteCommentController = async (req, res)=>{
-  const {userId,role} = req.user;
-  const {commentId} = req.params;
-  console.log("At controller the \n userId is ",userId,"\n commentId is ",commentId,
-    "\n role is ",role);
-  try {
-    const result = await deleteComment(userId,role, commentId);
-    return res.status(200).json({
-      success:true,
-      data:result,
-      })
   } catch (error) {
-          return res.status(400).json({
+    return res.status(400).json({
       success: false,
       message: error.message,
     });
   }
+};
+
+//deleteComment & reply
+export const deleteCommentController = async (req, res) => {
+  const { userId, role } = req.user;
+  const { commentId } = req.params;
+  console.log(
+    "At controller the \n userId is ",
+    userId,
+    "\n commentId is ",
+    commentId,
+    "\n role is ",
+    role,
+  );
+  try {
+    const result = await deleteComment(userId, role, commentId);
+    return res.status(200).json({
+      success: true,
+      data: result,
+    });
+  } catch (error) {
+    return res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// ------ share ------
+export const shareController = async (req, res) => {
+  const { userId } = req.user;
+  const { blogId } = req.params;
+  const {sharePlatform} = req.body;
+ try {
+
+  if (!blogId) {
+      return res.status(400).json({
+        success: false,
+        message: "Blog Id is required",
+      });
+    }
+
+if(!sharePlatform || typeof sharePlatform !== "string"){
+  return res.status(400).json({
+    success:false,
+    message:"Valid share platform is required",
+  });
 }
+
+    const result = await share(userId, blogId, sharePlatform);
+
+    return res.status(200).json({
+      success: true,
+      data: result,
+    });
+  } catch (error) {
+    return res.status(409).json({
+      success: false,
+      message: error.message,
+    });
+  }
+
+  /* 
+  learn and fix about this-->
+  If malicious user sends:
+{
+  "sharePlatform": { "$ne": null }
+}
+What will happen? 
+
+can be done in better error handling
+    // 5️⃣ Duplicate share (Conflict)
+    if (error.message.includes("already shared")) {
+      return res.status(409).json({
+        success: false,
+        message: error.message,
+      });
+    }
+
+    // 6️⃣ Blog not found
+    if (error.message.includes("Blog not Exist")) {
+      return res.status(404).json({
+        success: false,
+        message: error.message,
+      });
+    }
+
+    // 7️⃣ Default error
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Internal Server Error",
+    });
+  }
+
+
+
+*/
+};
+

@@ -7,6 +7,7 @@ import mongoose from "mongoose";
 import { Types } from "mongoose";
 import blogLikeModel from "../models/blogLike.js";
 import BlogCommentModel from "../models/blogComment.js";
+import BlogSharetModel from "../models/blogShare.js";
 
 export const updatePassword = async (email, oldPassword, newPassword) => {
   const userExist = await blogPeopleSchema.findOne({ email });
@@ -523,3 +524,37 @@ user and admin can delete the message
 if reply or comment delete then , comment deleted will show instead but not the reply will deleted
 
 */
+
+// ------------------Share-------------
+export const share = async (userId,blogId,sharePlatform)=>{
+
+//blogId  validation
+if(!Types.ObjectId.isValid(blogId)) throw new Error("Blog Id is Invalid");
+
+//blogExist or not
+const blogExist = await blogDetailSchema.findById(blogId);
+if(!blogExist) throw new Error("Blog not Exist");
+
+//sharePlatform exist or not
+if(!sharePlatform) throw new Error("Provide the Link share platform ");
+
+try {
+  const shareDoc = await BlogSharetModel.create({
+    userId,
+    blogId,
+    sharePlatform,
+  });
+
+  await blogDetailSchema.findByIdAndUpdate(blogId,{
+    $inc:{shareCount:1},
+  });
+  
+  return shareDoc;
+} catch (error) {
+  if(error.code === 11000){
+    throw new Error("You already shared this blog on this platform");
+  }
+  throw  error;
+}
+
+};

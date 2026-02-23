@@ -9,7 +9,7 @@ import jwt from "jsonwebtoken";
 import blogPeopleSchema from "../models/blogPeopleSchema.js";
 
 const authMiddleware = async (req, res, next) => {
-  console.log("auth middleware start Running");
+  console.log("auth middleware start Running✅");
 
   const authHeader = req.headers.authorization;
   // console.log("auth header", authHeader);

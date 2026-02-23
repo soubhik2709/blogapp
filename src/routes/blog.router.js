@@ -23,15 +23,12 @@ router.get("/my-blogs",showMyBlog);
 router.put("/:blogId",blogOwnershipMiddleware,updateBlogs);
 router.delete("/:blogId",blogOwnershipMiddleware,deleteoneblog);
 router.delete("/",deleteallblogs);
-
 router.get("/blogs", getpublishedblogs);//is for public page?
-router.get("/blogs/:blogId",blogOwnershipMiddleware, getsingleblog);
-
-
+router.get("/:blogId",blogOwnershipMiddleware, getsingleblog);
 
 export default router;
 
-//how the flow works?
+
 
 
 /*

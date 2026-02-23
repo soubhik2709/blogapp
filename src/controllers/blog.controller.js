@@ -9,6 +9,8 @@ import {
   getSingleBlog,
 } from "../services/blog.service.js";
 
+import { redisClient } from "../config/redis.js";
+
 export const createBlogs = async (req, res) => {
   console.log("request from backend for saveBlog is", req.body);
 
@@ -103,40 +105,65 @@ export const getpublishedblogs = async (req, res) => {
   }
 };
 
-export const getsingleblog = async (req, res) => {
+//cache aside using redis for get a single blog
+export const getsingleblog = async (req,res)=>{
   try {
-    const blogId = req.blog._id;
-    const user = req.user; //may be undefined
-    console.log(user);
+    const {blogId} = req.params;
+    const cacheKey = `blog:${blogId}`;
+    const user = req.user;
+    console.log("BlogId  is  ",blogId);
 
-    const blog = await getSingleBlog(blogId);
-    console.log(blog);
+    //check cache
+    const cacheBlog = await redisClient.get(cacheKey);
+    let blog;
 
-    if (blog.isPublished) {
-      //if published -> anyone can read
-      console.log("thsiis insise the blogispublished");
-      return res.status(200).json({
-        blog: blog,
+    if(cacheBlog){
+     console.log("Cache Hit ✅");
+     blog= JSON.parse(cacheBlog);
+    }else{
+  console.log("Cache Miss ❌ → Fetching from DB");
+
+   blog = await getSingleBlog(blogId);
+
+  if(!blog){
+    return res.status(404).json({ message: "Blog not found" });
+  }
+
+    // 🔐 Authorization check AFTER we have blog data
+    if(blog.isPublished){
+      //set the blog into the database
+      await redisClient.set(
+        cacheKey,
+        JSON.stringify(blog),
+        { EX: 600 }        
+      )};
+      // const test = await redisClient.get(cacheKey);
+      // if(!test)console.log("cache is not saved");
+  }
+
+if(blog.isPublished){
+   return res.status(200).json({
+        success:true,
+        data:blog,
       });
+}
+
+    if(user && (blog.userId.toString()=== user.userId.toString()|| user.role ==="admin")){
+      return res.status(200).json(
+        {
+          success:true,
+          data:blog,
+        });
     }
 
-    // If NOT published → only owner or admin
-    if (
-      (user && blog.userId.toString() === user.userId.toString()) ||
-      user.role === "admin"
-    ) {
-      return res.status(200).json({
-        blog: blog,
-      });
-    }
+    return res.status(403).json({
+      message:"Not authorized to view this blog",
+    });
+
   } catch (error) {
-    res.status(500).json({
-      message: "blog not found",
+      return res.status(500).json({
+      message: "Blog not found",
       error: error.message,
     });
   }
-};
-
-
-
-
+}

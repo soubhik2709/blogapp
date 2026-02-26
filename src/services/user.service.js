@@ -367,7 +367,11 @@ export const toggleLikeBlog = async (userId, blogId) => {
     blogId,
   }); //doc not find then return null
 
+  console.log(existingLike);
   if (existingLike) {
+      await blogDetailSchema.findByIdAndUpdate(blogId,{
+    $inc:{likeCount:-1},
+  });
     return {
       message: "like removed",
       liked: false,
@@ -378,6 +382,12 @@ export const toggleLikeBlog = async (userId, blogId) => {
     userId,
     blogId,
   });
+  
+  await blogDetailSchema.findByIdAndUpdate(blogId,{
+    $inc:{likeCount:1},
+    {new:true}
+  });
+
   return {
     message: "like added",
     liked: true,
@@ -517,13 +527,14 @@ export const deleteComment = async (userId,role, commentId) => {
     });
   }
   return {message:"comment deleted successfully"};
-};
 
-/* 
+  /* 
 user and admin can delete the message
 if reply or comment delete then , comment deleted will show instead but not the reply will deleted
 
 */
+};
+
 
 // ------------------Share-------------
 export const share = async (userId,blogId,sharePlatform)=>{

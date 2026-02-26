@@ -1,0 +1,14 @@
+https://ri.redis.io/14027544/browser
+
++++++++++++++++++++++Redis Todo ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+1.if user/bloguser online then show status and offline also
+
+
+How to cache blog list properly
+How to cache search results safely
+Or how to use Redis for view counter (INCR pattern)
+Notification queue using LPUSH
+Background worker with BRPOP
+Sync Redis count back to Mongo every 1 minute
+Rate limiting using Redis
+Pub/Sub for real-time like updates

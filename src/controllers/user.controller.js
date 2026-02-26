@@ -87,7 +87,7 @@ export const getBlogsController = async (req, res) => {
 export const toggleLikeController = async (req, res) => {
   const { userId } = req.user;
   const { blogId } = req.params;
-  console.log("usrid & blog Id is ", userId, blogId);
+  // console.log("usrid & blog Id is ", userId, blogId);
 
   try {
     const result = await toggleLikeBlog(userId, blogId);

@@ -137,8 +137,8 @@ export const getsingleblog = async (req,res)=>{
         JSON.stringify(blog),
         { EX: 600 }        
       )};
-      // const test = await redisClient.get(cacheKey);
-      // if(!test)console.log("cache is not saved");
+       const test = await redisClient.get(cacheKey);
+       if(!test)console.log("cache is not saved");
   }
 
 if(blog.isPublished){

@@ -469,7 +469,7 @@ export const commentBlog = async (
   if (!blogExist) throw new Error(`blog not exist on this blogId${blogId}`); //"Blog not found"
 
   if (parentCommentId) {
-    const PcomentExist = await BlogCommentModel.findById(parentCommentId);
+    const PcomentExist = await BlogCommentModel.findById(parentCommentId);//i have this line ?
     if (!PcomentExist) throw new Error("parentComment not found");
     if (!PcomentExist.blogId.equals(blogId))
       throw new Error("Parent comment does not belong to this blog");
@@ -478,23 +478,22 @@ export const commentBlog = async (
     if (PcomentExist.isDeleted)
       throw new Error("Cannot reply to a deleted comment"); // i allready check it is exist or not , then how and why?is it beacause of soft delete?
   }
+//Redis key
+const cacheKey = `blog:${blogId}:comment`;
+
   const comment = await BlogCommentModel.create({
     userId,
     blogId,
     commentText: trimComment,
     parentCommentId,
   });
+ //commentCount = number of top-level comments only. number of comments will not count with the reply
+  if (!parentCommentId) {
+    await redisClient.incr(cacheKey);
 
-  if (parentCommentId) {
-    return comment;
   } 
-  //commentCount = number of top-level comments only. number of comments will not count with the reply
-  else {
-    await blogDetailSchema.findByIdAndUpdate(blogId, {
-      $inc: { commentCount: 1 }, //if field not created then it can create
-    });
     return comment;
-  }
+  
 
   /* 
    Note->
@@ -534,23 +533,22 @@ export const deleteComment = async (userId,role, commentId) => {
   //authorization
   const isOwner = validComment.userId.toString() === userId.toString();
   console.log("the isOwner is ",isOwner);
-  // const isAdmid = role ==="admin";
+  const isAdmid = role ==="admin";
 
   if (!isOwner && !isAdmid)throw new Error ("Not Authorize to delete this comment");
+
+const cacheKey = `blog:${blogId}:comment`;//i allready made this line in the createComment, so should i need this deletecomment?is any better approach?
 
   await BlogCommentModel.findByIdAndUpdate(commentId,
     {$set:{
         isDeleted:true,
-      //  commentText: "This messge has deleted",
+       commentText: "This messge has deleted",
       }
     });
- 
+
   //decrement commentCount when parentCommentId : null
-  if (!validComment.parentCommentId) {
-  await  blogDetailSchema.findByIdAndUpdate(validComment.blogId, {
-      $inc: { commentCount: -1 },
-       //will this keep nested comments ,
-    });
+  if (!validComment.parentCommentId && !validComment.isDeleted) {
+    await redisClient.decr(cacheKey);
   }
   return {message:"comment deleted successfully"};
 

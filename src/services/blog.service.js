@@ -151,6 +151,30 @@ null → not exist
 } 
 
 
+-------------------Todo------------------------------
+this problem can be solve by using redis hash
+
+Instead of storing separate keys:
+
+blog:123:likes
+blog:123:comments
+blog:123:shares
+
+You can use Redis Hash:
+
+blog:123:metrics
+
+And store:
+
+{
+  likes: 10,
+  comments: 5,
+  shares: 2,
+  views: 100
+}
+
+const metrics = await redisClient.hGetAll(`blog:${blogId}:metrics`);
+
 
 */
 

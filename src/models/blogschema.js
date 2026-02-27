@@ -22,10 +22,7 @@ const blogSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    commentCount: {
-      type: Number,
-      default: 0,
-    },
+
     shareCount: {
       type: Number,
       default: 0,

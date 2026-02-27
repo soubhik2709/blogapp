@@ -9,7 +9,7 @@ import {
   deleteoneblog,
   deleteallblogs,
   getpublishedblogs,
-  getsingleblog
+  getsingleblogController
 } from "../controllers/blog.controller.js";
 
 
@@ -24,7 +24,7 @@ router.put("/:blogId",blogOwnershipMiddleware,updateBlogs);
 router.delete("/:blogId",blogOwnershipMiddleware,deleteoneblog);
 router.delete("/",deleteallblogs);
 router.get("/blogs", getpublishedblogs);//is for public page?
-router.get("/:blogId",blogOwnershipMiddleware, getsingleblog);
+router.get("/:blogId",blogOwnershipMiddleware, getsingleblogController);
 
 export default router;
 

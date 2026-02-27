@@ -1,7 +1,9 @@
 // blogservice.js
 import mongoose, { Types } from "mongoose";
 import blogDetailSchema from "../models/blogschema.js";
-
+import blogLikeModel from "../models/blogLike.js";
+import { redisClient } from "../config/redis.js";
+import {getOrInitCounter} from "../services/counter.service.js";
 //create or blog save to database
 export const blogSavetoDB = async (id, title, content, isPublished) => {
   const blog = await blogDetailSchema.create({
@@ -61,11 +63,149 @@ export const getPublishedBlogs = async () => {
   return result;
 };
 
-//getSingleBlog
-export const getSingleBlog = async (blogId) => {
-  const result = await blogDetailSchema.findById(blogId);
-  return result;
+
+
+//getSingleBlog----cache aside using redis for get a single blog
+export const getSingleBlog = async (blogId, user) => {
+
+  const cacheBlogKey = `blog:${blogId}`;
+  let cacheBlog = await redisClient.get(cacheBlogKey);
+
+  if (cacheBlog) {
+    console.log("cache Hit ✅")
+    cacheBlog = JSON.parse(cacheBlog); 
+   console.log("the blog is ",cacheBlog);
+  } else {
+    console.log("cahce Blog Miss ❌");
+    cacheBlog = await blogDetailSchema.findById( blogId );
+
+    if (!cacheBlog) {
+    
+      throw new Error("Blog not found");
+    }
+
+    if (cacheBlog.isPublished) {
+      await redisClient.set(cacheBlogKey, JSON.stringify(cacheBlog), { EX: 600 });
+      const check = await redisClient.get(cacheBlogKey);
+     console.log("After set, redis has:", check);
+    }
+
+  }
+
+if(!cacheBlog.isPublished){
+  if(!user || (cacheBlog.userId.toString() !== user.userId.toString() && user.role !== "admin")){
+    throw new Error("Not authorized");
+  }
+}
+
+const cacheLikeKey = `blog:${blogId}:likes`;
+let likeCount = await getOrInitCounter(cacheLikeKey, () =>
+    blogLikeModel.countDocuments({ blogId }),
+  );
+  // commentcount, shareCount,etc
+  
+  return {
+    ...cacheBlog.toObject?.()??cacheBlog,
+    totalLikes:Number(likeCount),
+
+  }
+/* 
+ 1.   ...cacheBlog.toObject?.()??cacheBlog,//what is this ? define with example?
+Case 1: From DB
+
+cacheBlog = mongooseDoc
+cacheBlog.toObject?.() → works
+
+Case 2: From Redis
+
+cacheBlog = { title: "Hello" }
+cacheBlog.toObject?.() → undefined
+?? cacheBlog → fallback
+
+Brilliant pattern.
+
+
+    
+2....cacheBlog.toObject?.()??cacheBlog,//why  3 dots here?
+with ... dots 
+
+{
+  "_id": "...",
+  "title": "...",
+  "content": "...",
+  "totalLikes": 10
+}
+
+without ... dots
+
+{
+  "cacheBlog": { ... },
+  "totalLikes": 10
+}
+
+3.if(!likeCount) -->bug--> could be 0
+do 
+null → not exist
+"0" → exists but zero likes
+ 
+} 
+
+
+
+*/
+
+
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

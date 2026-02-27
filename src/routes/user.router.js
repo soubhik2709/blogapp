@@ -20,4 +20,3 @@ router.post("/deleteUser",deleteuser);
 
 export default router;
 
-// 69871a6eb7bd889ed48d0608

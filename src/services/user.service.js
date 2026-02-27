@@ -8,6 +8,7 @@ import { Types } from "mongoose";
 import blogLikeModel from "../models/blogLike.js";
 import BlogCommentModel from "../models/blogComment.js";
 import BlogSharetModel from "../models/blogShare.js";
+import { redisClient } from "../config/redis.js";
 
 export const updatePassword = async (email, oldPassword, newPassword) => {
   const userExist = await blogPeopleSchema.findOne({ email });
@@ -360,39 +361,64 @@ If undefined → default to 1
 */
 
 export const toggleLikeBlog = async (userId, blogId) => {
-  //if user allready like then blogIndex will throw the error,but it can not delte the same exist  user
+/* 
+if user allready like then blogIndex will throw as i add unique Index the error,but it can not delte the same exist  user so i use findOneAndDelete, so do i  docuemnt searching by userId?
+Ans: db query slow , should separate the buisness logic .
 
-  const existingLike = await blogLikeModel.findOneAndDelete({
-    userId,
-    blogId,
-  }); //doc not find then return null
+*/
 
-  console.log(existingLike);
-  if (existingLike) {
-      await blogDetailSchema.findByIdAndUpdate(blogId,{
-    $inc:{likeCount:-1},
-  });
-    return {
-      message: "like removed",
+const cacheKey = `blog:${blogId}:likes`;
+//if like exists?
+const existingLike = await blogLikeModel.findOne({userId,blogId});
+
+//remove like
+if(existingLike){
+  console.log("user exist and allready like")
+  await blogLikeModel.deleteOne({userId,blogId});
+ const result = await redisClient.decr(cacheKey);
+ console.log("the result from like remove is ",result);
+  return{
+       message: "like removed",
       liked: false,
-    };
-  }
+      totalLikes:result,
+  } 
+}
 
-  await blogLikeModel.create({
-    userId,
-    blogId,
-  });
+try {
+  await blogLikeModel.create({userId, blogId});
+  const result = await redisClient.incr(cacheKey);//INCR automatically creates key value,
+ console.log("the result like Add is ",result);
   
-  await blogDetailSchema.findByIdAndUpdate(blogId,{
-    $inc:{likeCount:1},
-    {new:true}
-  });
+  return{
+message:"Like add",
+liked:true,
+totalLikes:result,
+  }
+  
+} catch (error) {
+  // Handle race condition duplicate error
+  if(error.code === 11000){
+       const currentLikes = await redisClient.get(cacheKey);
+     return {
+        message: "Already liked",
+        liked: true,
+        totalLikes: Number(currentLikes),
+     };
+    
+  }
+   throw error;
+  /* 
+  im using herer trycatch beacause its use to prevent raceCondition
+  , if user likes again at same time  then it will throw the second like  in the error block instead going to check the unique indexing or query at all or trying to add in the existing Like. 
+   */
+}
 
-  return {
-    message: "like added",
-    liked: true,
-  };
+/* 
+Not using findByIdAndUpdate or findByIdAndDelete , now using create and delete by using two field userId and blogId
+*/
 };
+
+
 
 /* 
 

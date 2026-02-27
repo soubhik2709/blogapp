@@ -105,65 +105,38 @@ export const getpublishedblogs = async (req, res) => {
   }
 };
 
-//cache aside using redis for get a single blog
-export const getsingleblog = async (req,res)=>{
+
+export const getsingleblogController = async (req,res)=>{
+
   try {
-    const {blogId} = req.params;
-    const cacheKey = `blog:${blogId}`;
-    const user = req.user;
-    console.log("BlogId  is  ",blogId);
+  const {blogId} = req.params;
+  const user = req.user;
 
-    //check cache
-    const cacheBlog = await redisClient.get(cacheKey);
-    let blog;
+  console.log("the user from the blogController is",user);
+  const blog = await getSingleBlog(blogId,user);
 
-    if(cacheBlog){
-     console.log("Cache Hit ✅");
-     blog= JSON.parse(cacheBlog);
-    }else{
-  console.log("Cache Miss ❌ → Fetching from DB");
-
-   blog = await getSingleBlog(blogId);
-
-  if(!blog){
-    return res.status(404).json({ message: "Blog not found" });
-  }
-
-    // 🔐 Authorization check AFTER we have blog data
-    if(blog.isPublished){
-      //set the blog into the database
-      await redisClient.set(
-        cacheKey,
-        JSON.stringify(blog),
-        { EX: 600 }        
-      )};
-       const test = await redisClient.get(cacheKey);
-       if(!test)console.log("cache is not saved");
-  }
-
-if(blog.isPublished){
-   return res.status(200).json({
-        success:true,
-        data:blog,
-      });
-}
-
-    if(user && (blog.userId.toString()=== user.userId.toString()|| user.role ==="admin")){
-      return res.status(200).json(
-        {
-          success:true,
-          data:blog,
-        });
-    }
-
-    return res.status(403).json({
-      message:"Not authorized to view this blog",
+    return res.status(200).json({
+      success: true,
+      data: blog,
     });
+
 
   } catch (error) {
-      return res.status(500).json({
-      message: "Blog not found",
-      error: error.message,
-    });
+  if (error.message === "Blog not found") {
+    return res.status(404).json({ message: error.message });
+  }
+
+  if (error.message === "Not authorized") {
+    return res.status(403).json({ message: error.message });
+  }
+
+  return res.status(500).json({ message: "Internal Server Error" });
   }
 }
+/* 
+How to add this line
+ return res.status(403).json({
+    message:"Not authorized to view this blog",
+  })
+
+*/

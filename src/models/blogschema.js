@@ -59,4 +59,6 @@ blog view, like, share,comments, publish, unpublish,
 1.How Redis hanlde like share comment count , no  more field require?
 
 as im using redis so the commentCount,likecount,sharecount not have to be keep as a field inside the blogschema,cause if users made like , comment , or share then new doc will create and all the docuements are saved inside the DB. then after when that blog is request , the first time for showing the count of all these fields  have been   calculte,then it will store as a cache in Redis. Then any like happen then redis will increment on memory, and show on the page directly.Incase redis restart ,then not a problem cause all new like ,share etc doc are save in db , so redis will handle by my application logic where the count system allready calculate and show on page , then Redis handles future increments.
+
+2.what is this in mongoDb API Orchestration?
 */

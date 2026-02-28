@@ -41,6 +41,16 @@ export const blogUpdatefromDB = async (blogId, content, title, isPublished) => {
     updateData,
     { new: true, runValidators: true },
   );
+
+    //redis 
+  const keytoDelete = [
+    `blog:${blogId}`,
+    `blog:${blogId}:likes`,
+    `blog:${blogId}:comment`,//share due
+  ];
+
+await redisClient.del(keytoDelete);
+
   console.log(updatedPost);
   return updatedPost;
 };

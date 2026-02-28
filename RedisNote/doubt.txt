@@ -56,6 +56,19 @@ With cache:
 
 now guide me the connection and configuration 
 
+4.what is this LPUSH
+Controller
+   ↓
+Service (toggleLikeBlog)
+   ↓
+Mongo (source of truth)
+   ↓
+Redis INCR / DECR (fast counter)
+   ↓
+LPUSH notification job
+
+5.how to select the data size for redis, like for free size 30mb i want to save  only for 15mb for cache:
+
 
 
 

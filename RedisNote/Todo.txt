@@ -12,3 +12,63 @@ Background worker with BRPOP
 Sync Redis count back to Mongo every 1 minute
 Rate limiting using Redis
 Pub/Sub for real-time like updates
+
+
+--------------------------------------------------
+Next task
+PART 2 — Notification Queue using Redis List
+
+This is where you start thinking like a real backend engineer.
+
+This teaches:
+
+Queues
+
+Background workers
+
+Async processing
+
+Decoupled architecture
+
+🎯 Goal
+
+If blog owner is offline:
+
+When someone likes/comments
+
+Send email notification
+
+But NOT inside request-response cycle
+
+Why?
+
+Because:
+
+Sending email takes time
+
+Your API should respond fast
+
+We need background processing
+
+🧠 Core Concept: Queue
+
+Instead of:
+
+User Like → Send Email Immediately → Slow API ❌
+
+We do:
+
+User Like → Push Job to Redis → API responds fast ✅
+Worker Process → Reads job → Sends email
+
+After this you can implement:
+
+Notification queue using LPUSH
+
+Background worker with BRPOP
+
+Sync Redis count back to Mongo every 1 minute
+
+Rate limiting using Redis
+
+Pub/Sub for real-time like updates

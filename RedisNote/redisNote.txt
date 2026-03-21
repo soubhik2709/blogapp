@@ -164,20 +164,80 @@ Not for permanent counters.
 
 
 
+-----------Redis Notification system ----------
+
+Task :Email or msg notification is sending by email or sms  through queue by using Redis.
+✅ Like API → Push job to Redis (LPUSH)
+✅ Background Worker → BRPOP
+✅ Email sender (nodemailer)
+✅ Retry logic
+✅ Failed queue
+
+
+Now some points to note->
+
+1. data Structure-> Stack, queue.  
+Queue (FIFO) → First In First Out       Stack(LIFO)  → Last In First Out                 
+If you:                                 If you:       
+Push LEFT → Pop RIGHT                   Push LEFT → Pop LEFT                  
+OR                                      OR
+Push RIGHT → Pop LEFT                   Push RIGHT → Pop RIGHT            
+
+
+2.📦 Redis List Basics (Internally)
+Redis List is:
+      Ordered
+      Allows duplicates
+      Supports push/pop from both ends
+      Very fast (O(1) operations)
+      Think of it like this:
+      
+      [ job3, job2, job1 ]
+        ↑               ↑
+       left           right
+
+
+3.LPUSH-Add Task to Left Side,Adds a value to the LEFT side of the list.Every new item goes to the left front. for pop use  BRPOP
+
+4.RPUSH - reverse of LPUSH. for pop use BLPOP.
+
+5.BRPOP  - Blocking Pop . Blocking means - If queue empty →  It WAITS,blocks,It does NOT return until a job arrives. where  in RPOP returns null immediately.This is PERFECT for background workers. No matter use of BRPOP or BLPOP just maintain the stack, queue order.
+
+6.LLEN - list length , Check Queue/stack Size.
+
+
+7.(FIFO Pattern)
+Producer → LPUSH - LPUSH adds to left
+Worker → BRPOP -BRPOP removes from right,So oldest job is processed first.O(1)
+
+8. WHY PUSH is  Allow Both Sides?
+ Redis List is actually a Doubly Linked List internally.It can efficiently access both ends.Usecase-
+  FIFO (eg.Email sending system) 
+  LIFO (eg.Undo system in editor).
+  Priority Jobs  - critical password reset email -> RPUSH queue normalJob
+                   Instead of RPUSH--->             LPUSH queue urgentJob
+                   so nextime BRPOP will get  the urgentJob.
+
+9.What Is Override?
+Override means:
+Force something to jump ahead
+Ignore normal order
 
 
 
 
+🔥 Better Real Priority Queue (Professional Way)
+Instead of List, professionals use:
 
+👉 Sorted Set (ZSET) 
+Each job has a score:Then worker gets smallest score first.
+Low score = High priority
+High score = Low priority
 
-
-
-
-
- 
-
-
-
+Example:
+ZADD queue 1 urgentJob
+ZADD queue 5 normalJob
+ZADD queue 10 lowJob
 
 
 

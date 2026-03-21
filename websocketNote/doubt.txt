@@ -1,0 +1,85 @@
+1.when we use Microservices architecture,Separate real-time server, while using different ports for server and websocket, what is that mean? 
+
+🔥 How WebSocket works internally (TCP level)
+🚀 How to integrate WebSocket with Express properly
+🧠 How to manage multiple users safely
+
+2.
+
+
+what happen after task move to Failed queue?
+
+
+
+----------------------------------------------------------
+advance Redis
+Add monitoring endpoint:
+GET queue size (LLEN)
+Add delayed jobs using Sorted Set
+Use BullMQ instead of raw Redis
+Use PM2 to keep worker alive
+Add cron to retry failed queue
+
+
+----------------------------------------------------
+diff bet  WebSocket,  WebSocketServer
+const clients = new Set();
+---------------------------------------------------
+tell me one wss , and multiple ws server, so how can i distinguise multiple ws?
+server Can listen on a port, but app can also listen a port right? but we dont do that here beacause we also have to listen websocket as they are on the same port, am i right?if they dont rely on  the same port then would i use app.listen separately?
+
+
+
+----------------------------------------------------
+Every machine has:
+
+IP + Port
+
+Example:
+
+127.0.0.1:8000
+
+Port binding makes this address reachable.
+
+---------------------------------------------------------
+What is the HTTP Server Model?
+In Node.js, the real server is created using:
+
+const http = require("http");
+const server = http.createServer((req, res) => {
+  res.end("Hello World");
+});
+
+server.listen(8000);
+http.createServer() → creates the
+actual TCP server
+It listens to a port
+It handles raw HTTP requests
+You manually handle req and res
+This is the core Node.js HTTP engine.
+
+
+-------------------------------------------------------
+Tcp
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

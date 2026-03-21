@@ -63,6 +63,22 @@ Network issue
 Timeout
 Without this, your app might crash silently.
 
+-----------------------------------------
+what is this ? define me this with example 
+export const redisClient = createClient({
+  url: process.env.REDIS_URL,
+  socket: {
+    reconnectStrategy: (retries) => {
+      if (retries > 10) {
+        console.error('Redis: too many retries, giving up');
+        return new Error('Too many retries');
+      }
+      return Math.min(retries * 100, 3000); // wait up to 3s between retries
+    }
+  }
+});
+--------------------------------------------
+when will This re-connection issue can be occur?
 
 
 

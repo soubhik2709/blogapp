@@ -9,6 +9,7 @@ import blogLikeModel from "../models/blogLike.js";
 import BlogCommentModel from "../models/blogComment.js";
 import BlogSharetModel from "../models/blogShare.js";
 import { redisClient } from "../config/redis.js";
+import { sendNotification } from "./notification.service.js";
 
 export const updatePassword = async (email, oldPassword, newPassword) => {
   const userExist = await blogPeopleSchema.findOne({ email });
@@ -388,6 +389,20 @@ try {
   await blogLikeModel.create({userId, blogId});
   const result = await redisClient.incr(cacheKey);//INCR automatically creates key value,
  console.log("the result like Add is ",result);
+
+  //send Notification
+const blogExist = await blogDetailSchema.findById(blogId);
+
+  if(String(blogExist.userId)!==String(userId)){
+await sendNotification({
+recipientId:blogExist.userId,
+senderId:userId,
+type:"Like",
+blogId:blogId,
+blogTitle:blogExist.blogtitle,
+});
+}
+
   
   return{
 message:"Like add",
@@ -492,6 +507,20 @@ const cacheKey = `blog:${blogId}:comment`;
     await redisClient.incr(cacheKey);
 
   } 
+
+  //comment notification will go to the blogOwner
+ if(String(blogExist.userId)!==String(userId)){
+await sendNotification({
+recipientId:blogExist.userId,
+senderId:userId,
+type:"Comment",
+blogId:blogId,
+blogTitle:blogExist.blogtitle,
+});
+ }
+
+
+
     return comment;
   
 
@@ -584,6 +613,17 @@ try {
     $inc:{shareCount:1},
   });
   
+  //send Notification
+if(String(blogExist.userId)!==String(userId)){
+await sendNotification({
+recipientId:blogExist.userId,
+senderId:userId,
+type:"Share",
+blogId:blogId,
+blogTitle:blogExist.blogtitle,
+});
+}
+
   return shareDoc;
 } catch (error) {
   if(error.code === 11000){

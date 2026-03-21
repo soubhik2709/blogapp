@@ -2,7 +2,7 @@
 import express from "express";
 const router = express.Router();
 
-import {signup,login,logout,refreshAccessToken,verifyEmail} from "../controllers/auth.controller.js";
+import {signup,login,logout,refreshAccessToken,verifyEmail,ticketIssue} from "../controllers/auth.controller.js";
 import authMiddleware from "../middleware/auth.middleware.js";
 
 router.post("/signup", signup);
@@ -10,6 +10,7 @@ router.post("/login", login);
 router.post("/logout",authMiddleware, logout);
 router.post("/refreshAccessToken", refreshAccessToken);//no middleware
 router.get("/verify-email",verifyEmail);
+router.post("/ws-ticket",authMiddleware,ticketIssue);//for ws ticket using redis
 
 export default router;
 

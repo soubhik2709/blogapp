@@ -1,0 +1,208 @@
+Real Production Architecture
+Flow:
+User likes blog
+API server saves in DB
+API publishes event to Redis
+WebSocket server listens to Redis
+WebSocket server pushes real-time message
+
+Definition of websocket
+WebSocket is a protocol.
+It is built on top of TCP and allows:
+Persistent connection
+Bi-directional communication
+Low latency
+Real-time messaging
+
+What is Socket.IO?
+Socket.IO is NOT WebSocket.
+It is a library built on top of WebSocket.
+It adds extra features.
+
+
+🔹 What is wss?
+wss = WebSocket Server
+Example:
+const wss = new WebSocket.Server({ server });
+Think of it like:
+
+Express app → handles HTTP
+WebSocket server → handles real-time connections
+
+🔹 What is "connection" ?
+It is an event.
+When a client connects:
+Browser → new WebSocket(...)
+Server → fires "connection" event
+
+🔹 What is  (ws) as parameter at ->wss.on("connection", (ws) =>{})?
+ws = WebSocket connection object for ONE connected client,Not encrypted,Every user that connects gets their own ws object.
+Think like this:
+wss → WebSocket Server,Secure WebSocket,Encrypted (SSL/TLS)
+ws → One specific client connected to that server
+If 5 users connect:
+wss stays one
+You get 5 different ws objects (one per client)
+ws = that specific client's connection.Every user that connects gets their own ws object.
+
+Think of it like:
+User A → ws1
+User B → ws2
+User C → ws3
+
+Each one is separate.
+So inside:
+wss.on("connection", (ws) => {})
+ws = connection of that particular user.
+
+ws = your communication channel with that client. it gives you control over that specific client.You can:
+
+Receive messages → ws.on("message")
+Send messages → ws.send()
+Close connection → ws.close()
+Check state → ws.readyState
+
+
+🔹 ws:/
+ws = connection between server and ONE client.
+Normal WebSocket
+Not encrypted
+Like HTTP
+ws://localhost:8000
+wss.on("connection", (ws) => {})
+When a client connects:
+Server creates a WebSocket connection
+That connection is stored in ws
+
+
+
+
+
+🔹wss://
+Secure WebSocket
+Encrypted (SSL/TLS)
+Like HTTPS
+Example:
+wss://yourdomain.com
+
+
+1.what is this mean?
+const server = http.createServer(app); 
+ // WebSocket server attached to same HTTP server
+ const wss = new WebSocketServer({ server });  ?
+
+Ans: here we manually create server to access server object.like websocket, socket.io, https,http/2, custom server config etc.
+
+http is the built-in module In Node.js.This module can create a raw HTTP server.
+eg. const server = http.createServer((req, res) => {
+  res.end("Hello world");
+});
+server.listen(3000);
+----------------------
+
+http.createServer() expects a requestListenerFunction
+That requestListenerFunction must look like:(req, res) => { }
+That function handles every request
+That function receives (req, res)
+so , When client hits server: → call that function(req, res).
+-----------
+    What is app really?
+    app is literally a function.it is look like:
+    function app(req, res) {
+   app.handle(req, res);
+     }
+
+ http.createServer(app) ->Node now stores your app function as the request listener.here app (Express) is NOT a server.it is just a request handler function. it means “Use Express to handle every HTTP request.”
+
+ so Internally it becomes something like:
+ const server = http.createServer((req, res) => {
+   app(req, res);
+});
+------------
+so when client make request then browser make  http://localhost:3000/blog .(Node does app(req, res);Express starts handling it).
+Then http server receive in this port & create req,res object. And Node call Express app beacause i give app into createServer(app). so Express does middlewaer, routes, match route.
+
+2.
+
+
+
+
+
+Using ws we can make ------->
+Send private message to one user
+Broadcast to all users
+Track online users
+Build chat apps
+Real-time notifications
+Multiplayer games
+Live dashboards
+
+What is readyState in WebSocket?
+CONNECTING,OPEN,CLOSING,CLOSED.
+
+
+const server = http.createServer(app);
+Now this is important.
+You are creating a real HTTP server using Node’s built-in http module.
+You are saying:
+“Use Express (app) to handle HTTP requests, but create the actual network server using Node.”
+Now server has REAL POWER.
+
+
+
+What power does server have?
+Now this server:
+Attach multiple real-time systems-Monitor connections
+Can listen on a port -Share port between HTTP & WebSocket
+Can accept TCP connections
+Can handle HTTP upgrade requests -Implement HTTPS + WSS
+Can be shared with WebSocket
+Can be controlled (close, timeout, etc.)-Close entire server gracefully
+Emits low-level events like "request" and "upgrade"-Listen to low-level "upgrade" events
+
+Example:1.
+server.listen(8000);
+Now your machine is listening on port 8000.
+
+Example:2.
+server.on("upgrade", (req, socket, head) => {
+  console.log("Upgrade request received");
+});
+
+That is impossible if you only use app.listen().
+
+
+
+const wss = new WebSocketServer({ server });//it says -Use this existing HTTP server for WebSocket upgrades.
+This does NOT create a new port.
+It attaches WebSocket to the SAME HTTP server.
+One port (8000)
+One server
+Two protocols:
+HTTP → handled by Express
+WebSocket → handled by wss
+
+
+What does this mean?WebSocket works using HTTP upgrade?
+Client first sends:
+
+GET /chat HTTP/1.1
+Upgrade: websocket
+Connection: Upgrade
+
+The HTTP server receives this.
+Then:
+Instead of responding normally,
+It upgrades the connection to WebSocket protocol.
+That upgrade handling is done by:
+new WebSocketServer({ server })
+
+What Does “Real Network Server” Mean?
+A program that:
+Opens a TCP port (like 8000)
+Listens for incoming connections
+Accepts socket connections
+Manages low-level networking
+Handles HTTP protocol parsing
+Can upgrade HTTP → WebSocket
+That is NOT Express.That is Node’s http module.

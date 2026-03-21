@@ -5,6 +5,7 @@ import express from "express";
 import authRoutes from "./routes/auth.router.js";
 import userRoutes from "./routes/user.router.js";
 import blogRoutes from "./routes/blog.router.js";
+import notificationRoutes from "./routes/notification.routes.js";
 
 const app = express();
 
@@ -17,6 +18,7 @@ app.use(express.urlencoded({extended:false}));//use of this?
 app.use("/api/auth",authRoutes);
 app.use("/api/users",userRoutes);
 app.use("/api/blogs",blogRoutes);
+app.use("/api/notifications",notificationRoutes);
 
 
 export default app;

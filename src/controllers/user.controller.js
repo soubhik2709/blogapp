@@ -1,3 +1,5 @@
+import blogLikeModel from "../models/blogLike.js";
+import blogDetailSchema from "../models/blogschema.js";
 import {
   updatePassword,
   deleteUser,
@@ -88,7 +90,8 @@ export const toggleLikeController = async (req, res) => {
   const { userId } = req.user;
   const { blogId } = req.params;
   // console.log("usrid & blog Id is ", userId, blogId);
-
+const blog = await blogDetailSchema.findById(blogId).populate("userId");  
+console.log("the blog is",blog);
   try {
     const result = await toggleLikeBlog(userId, blogId);
     return res.status(201).json({
@@ -133,7 +136,7 @@ export const commentBlogController = async (req, res) => {
 //deleteComment & reply
 export const deleteCommentController = async (req, res) => {
   const { userId, role } = req.user;
-  const { commentId } = req.params;
+  const { commentId,blogId } = req.params;
   console.log(
     "At controller the \n userId is ",
     userId,

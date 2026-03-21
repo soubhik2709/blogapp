@@ -28,6 +28,7 @@ const blogOwnershipMiddleware = async (req, res, next) => {
       });
 // console.log("blogExist is ",blogExist);
 // console.log("\n blogExist userId is",blogExist.userId.toString());
+
     // 2️⃣ Admin override. admin have all permissions
     if (role === "admin") {
       return next();
@@ -52,6 +53,28 @@ const blogOwnershipMiddleware = async (req, res, next) => {
 };
 
 export default blogOwnershipMiddleware;
+
+
+/* 
+how to implement this ?
+🔥 Now About blogOwnershipMiddleware
+
+Same concept.
+
+Instead of using middleware directly,
+extract logic into:
+
+export async function checkBlogOwnership(user, blogId) { ... }
+
+Then:
+
+Express middleware calls it
+
+WebSocket message handler calls it
+
+
+
+*/
 
 
 

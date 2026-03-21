@@ -1,5 +1,6 @@
-
 // auth.controller.js
+import { createTicket } from "../services/ticket.service.js";
+
 import jwt from "jsonwebtoken";
 import { signupUser,loginUser } from "../services/auth.service.js";
 import {generateAccessToken,generateRefreshToken,generateMailVerifyToken} from "../utils/generateToken.js";
@@ -126,6 +127,8 @@ export const login = async (req, res) => {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "strict", //front&back have to be same PORT
+        path:'auth/refresh'//scope only to refresh endpoint, not every route.
+      // maxAge:why need this ?, i allready did at the top
       })
       .status(200)
       .json({ accessToken });
@@ -196,4 +199,19 @@ export const refreshAccessToken = async (req, res) => {
   }
 };
 //This refreshToken will call by fronend or from postman manually.
+
+
+// Create the Ticket and send back to the client.
+export const ticketIssue = async(req,res)=>{
+try {
+  const ticket = await createTicket(req.user.id);
+  res.json({ticket});
+
+} catch (error) {
+  console.error('Failed to issue WS ticket:', error);
+    res.status(500).json({ message: 'Could not create connection ticket' });
+}
+}
+
+
 

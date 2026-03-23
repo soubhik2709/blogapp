@@ -6,11 +6,7 @@ import http from "http";
 import app from "./app.js";
 import connectDB from "./config/db.js";
 import connectRedis from "./config/redis.js";
-import {initializeWebSocket} from "./websocket/wsServer.js";
-
-//websocket 
-const server = http.createServer(app);
-initializeWebSocket(server);//1
+import { initializeWebSocket } from "./websocket/wsServer.js";
 
 //connect the server
 (async () => {
@@ -18,16 +14,18 @@ initializeWebSocket(server);//1
     await connectDB();
     await connectRedis();
 
+    //websocket
+    const server = http.createServer(app);
+    initializeWebSocket(server); //1
+
     server.listen(process.env.PORT, () => {
       console.log(`server stated on PORT${process.env.PORT}`);
     });
-
   } catch (error) {
-    console.log("startUp error :", error);  
+    console.log("startUp error :", error);
     process.exit(1);
   }
 })();
-
 
 /* 
 so authmiddleware ,blogmiddleware will run when rest request run,for  every setting path . But for the ws setting for the first time as ws dont have res, or next we use separattion resuslabe code,

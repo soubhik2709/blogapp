@@ -1,6 +1,5 @@
 // auth.controller.js
 import { createTicket } from "../services/ticket.service.js";
-
 import jwt from "jsonwebtoken";
 import { signupUser,loginUser } from "../services/auth.service.js";
 import {generateAccessToken,generateRefreshToken,generateMailVerifyToken} from "../utils/generateToken.js";
@@ -23,7 +22,7 @@ export const signup = async (req, res) => {
 
     //   const mailVerifytoken = generateMailVerifyToken(user._id);can i do this directly?
     const mailVerifytoken = generateMailVerifyToken(id);
-    console.log("the verifitoken from the sendmail  is ", mailVerifytoken);
+    // console.log("the verifitoken from the sendmail  is ", mailVerifytoken);
 
     //token save to db
     const verifyTokenDb = await EmailverificationTokenModel.create({
@@ -67,7 +66,7 @@ export const verifyEmail = async (req, res) => {
     if(tokenDoc) console.log( "Token is find from databse" );
     if (!tokenDoc) console.log("Invalid token" );
     // 3️⃣ Check expiration
-    if (tokenDoc.expiresAt.getTime < Date.now())
+    if (tokenDoc.expiresAt.getTime() < Date.now())
       return res.status(400).json({ message: "Token expired" });
      // 4️⃣ Verify user
     await blogPeopleSchema.findByIdAndUpdate(tokenDoc.userId, {
@@ -80,9 +79,6 @@ export const verifyEmail = async (req, res) => {
       message: "Email Verified Successfully, and your signup is done",
     });
   } catch (error) {
-
-
-
      console.error("❌ Email verification failed from verify Email:", error);
     return res.status(401).json({
       message: "Something went wrong , Mail is not verified",
@@ -127,7 +123,7 @@ export const login = async (req, res) => {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "strict", //front&back have to be same PORT
-        path:'auth/refresh'//scope only to refresh endpoint, not every route.
+        path:'auth/auth/refresh'//scope only to refresh endpoint, not every route.
       // maxAge:why need this ?, i allready did at the top
       })
       .status(200)
@@ -158,6 +154,7 @@ export const logout = async (req, res) => {
       httpOnly: true,
       sameSite: "strict",
       secure: process.env.NODE_ENV === "production",
+      path: '/api/auth/refreshAccessToken',
     })
     .status(200)
     .json({
@@ -185,7 +182,9 @@ export const refreshAccessToken = async (req, res) => {
       token: refreshToken,
     });
 
-    if (!tokenExist)  console.log("Token revoked", tokenExist);
+  if (!tokenExist) {
+  return res.status(401).json({ message: "Refresh token has been revoked" });
+}
 
     // 3. issue new access token
     const newAccessToken = generateAccessToken(decoded.userId);

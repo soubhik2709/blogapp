@@ -14,8 +14,6 @@ export const signupUser = async (name, email, password, role) => {
     role,
   });
 
-
-
   return user;
 };
 

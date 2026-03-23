@@ -7,9 +7,11 @@ import {
 
 const router = express.Router();
 
-router.use(authMiddleware,blogOwnershipMiddleware);
+router.use(authMiddleware);
 router.get("/",getNotification);
 router.get("/unread-count",getUnreadCount);
 router.patch("/mark-read",markAllRead); //patch/notificaton/mark-read
 
 export default router;
+
+// why blogOwnerShip middleware is not needed here?

@@ -10,9 +10,9 @@ import notificationRoutes from "./routes/notification.routes.js";
 const app = express();
 
 //middlewares for parsing data
-app.use(express.json());//use of this with cookieParser
-app.use(cookieParser());//use of this
-app.use(express.urlencoded({extended:false}));//use of this?
+app.use(express.json())
+app.use(cookieParser());
+app.use(express.urlencoded({extended:false}));
 
 //routes redirect
 app.use("/api/auth",authRoutes);

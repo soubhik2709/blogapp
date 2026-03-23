@@ -6,9 +6,39 @@ import { redisClient } from "../config/redis.js";
 
 export function initializeWebSocket(server){
     const wss = new WebSocketServer({noServer:true});
+    console.log("all the wss clients",wss.clients);
 
+//heartBeat Interval 
+//checks every connected client
+// if a client did not respond to last ping → connection is dead → terminate
+const heartBeat = setInterval(()=>{
+wss.clients.forEach((ws)=>{
+    if(!ws.isAlive){
+        // did not respond to ping sent 30s ago — connection is silently dead
+        // terminate() forces close which triggers ws.on("close") below
+        // that handler cleans up Redis and wsManager
+        ws.terminate();
+        return;   
+    }
+    // this bleow statement  only run if the if block was NOT entered
+    ws.isAlive = false;
+    ws.ping();
+})
+},30000);//30s
+
+  // stop the interval when the WSS server itself closes
+  // otherwise the interval keeps running forever even after server shutdown
+wss.on("close",()=>{
+    clearInterval(heartBeat);
+});
+
+
+
+
+// handle upgrade ---
     server.on("upgrade",async(req,socket,head,)=>{
-       const authResult = await authenticateWebSocket(req);
+        try {
+        const authResult = await authenticateWebSocket(req);
 
        if(!authResult.success){
          socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');//what is the mean of this line? 3.
@@ -22,13 +52,29 @@ export function initializeWebSocket(server){
 
         wss.emit("connection",ws,req);
        });
+        } catch (error) {
+            // unexpected during upgrade
+            console.log("ws upgrage error:",error);
+            socket.write("HTTP/1.1 500 Internal Server Error\r\n\r\n");
+            socket.destroy();
+        }
 
     });
+
+
+    // --- connection establish
 
     wss.on("connection",async(ws)=>{
         console.log("user connected:",ws.user.id);
         console.log("The WS is:",ws);
         const userId = ws.user.id;
+
+
+        //mark conection alive for heartbeat track
+        ws.isAlive = true;
+        ws.on("pong",()=>{
+            ws.isAlive = true;
+        });
 
         // Mark User Online---
         wsManager.adduser(userId,ws);//IT will store at onlineUser as ws obj.
@@ -42,12 +88,16 @@ export function initializeWebSocket(server){
     // When another server instance publishes to this channel,then this handler will fire and deliver it over WebSocket
     const subscriber = redisClient.duplicate();//create duplicate TCP
     await subscriber.connect();//connect duplicate TCP for geting the data
+
+     // notification.service.js publishes here when someone interacts with their content
     await subscriber.subscribe(`notify:${userId}`,(message)=>{
         if(ws.readyState === ws.OPEN){
             ws.send(message);//msg is allready in JSON
         }
     });//1
 
+
+    //Incoming message from browser---
 
         ws.on("message",(msg)=>{
             console.log("Message from ",ws.user.id,msg.toString());

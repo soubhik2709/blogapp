@@ -5,8 +5,8 @@ import { NotificationModel } from "../models/notification.model.js";
 // GET /notifications
 //Get last 20 notifications for the logged in user
 export const getNotification = async(req,res)=>{
-  const { userId } = req.user;
-  const { blogId } = req.params;
+  const { userId } = req.user.id;
+//   const { blogId } = req.params;
     try {
         const notifications = await NotificationModel.find({recipient:userId}).sort({createdAt:-1}).limit(5).populate("sender","name avatar").populate("blog","blogTitle");
       res.json({notifications});//i dont have sender, avatar, blog, what is this mean for?
@@ -21,7 +21,7 @@ export const getNotification = async(req,res)=>{
 // GET/notifications/unread-count
 //returns the number on the bell icon
 export const getUnreadCount = async(req,res)=>{
-  const { userId } = req.user;
+  const { userId } = req.user.id;
     try {
         const count = await NotificationModel.countDocuments({
             recipient:userId,
@@ -36,7 +36,7 @@ export const getUnreadCount = async(req,res)=>{
 // PATCH/notifications/mark-read
 // called when user Opnes the notification panel
 export const markAllRead = async(req,res)=>{
-  const { userId } = req.user;
+  const { userId } = req.user.id;
     try {
         await NotificationModel.updateMany(
             {recipient:userId,read:false},

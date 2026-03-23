@@ -1,7 +1,7 @@
 //services/notification.service.js
 import { NotificationModel } from "../models/notification.model.js";
 import { redisClient } from "../config/redis.js";
-// import emailQueue from ""
+import {emailQueue} from "../queue/email.queue.js";
 import blogPeopleSchema from "../models/blogPeopleSchema.js";
 
 export const sendNotification = async ({recipientId,senderId,type,blogId,blogTitle})=>{

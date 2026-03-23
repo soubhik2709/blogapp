@@ -16,14 +16,15 @@ import {
 
 //pagination 
 // router.get("/cursors/:userId",findData);
+router.get("/blogs", getpublishedblogs);//public page
 
 router.use(authMiddleware);//Run for every request.
+
 router.post("/",createBlogs);
 router.get("/my-blogs",showMyBlog);
 router.put("/:blogId",blogOwnershipMiddleware,updateBlogs);
 router.delete("/:blogId",blogOwnershipMiddleware,deleteoneblog);
 router.delete("/",deleteallblogs);
-router.get("/blogs", getpublishedblogs);//is for public page?
 router.get("/:blogId",blogOwnershipMiddleware, getsingleblogController);
 
 export default router;

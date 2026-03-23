@@ -66,7 +66,7 @@ const validateUser = (userId) => {
 // 2.buildFilterQuery
 const buildFilterQuery = (userId, filters) => {
   if (!filters || typeof filters !== "object") {
-    throw new Error("Invalid query");
+    throw new Error("Invalid query for filters is not object");
   }
   const allowedFilters = ["isPublished", "blogtitle"]; //whiteListing
 
@@ -117,7 +117,7 @@ const buildSortOption = (sort) => {
 
   const sortValue = Array.isArray(sort) ? sort : sort ? [sort] : []; //sort is have to be array now
 
-  let sortOption = {};
+  let sortOption = {};//Final object to send to MongoDB
 
   for (let item of sortValue) {
     if (typeof item !== "string") continue;
@@ -125,6 +125,7 @@ const buildSortOption = (sort) => {
 
     for (let field of sortFields) {
       field = field.trim();
+      console.log("The field is",field);
       let direction = 1;
 
       if (field.startsWith("-")) {
@@ -139,7 +140,7 @@ const buildSortOption = (sort) => {
   if (Object.keys(sortOption).length === 0) {
     sortOption = { _id: 1 };
   }
-  // console.log("sortOption is", sortOption);
+  console.log("sortOption is", sortOption);
   return sortOption;
   /* features --Multi-field sorting,Direction parsing,Whitelisting sort fields,Default fallback
 input is --sort is  -createdAt,updatedAt,-age
@@ -184,7 +185,7 @@ const applyCursorPagination = async (query, cursorId, sortOption) => {
       },
     ];
   }
-  // console.log("Now the query at the cursorPagination is", query);
+  console.log("Now the query at the cursorPagination is", query);
   return query;
 
   /* 
@@ -305,8 +306,6 @@ Is NOT visible by default
 Exists only during that query
 
 To access it, you must explicitly request it using:{ score: { $meta: "textScore" } }
-
-
 
 Projection controls which fields are returned from MongoDB.
 Example:db.blogs.find({}, { title: 1, content: 1 })
@@ -513,7 +512,7 @@ const cacheKey = `blog:${blogId}:comment`;
 await sendNotification({
 recipientId:blogExist.userId,
 senderId:userId,
-type:"Comment",
+type:parentCommentId ? "reply":"Comment",
 blogId:blogId,
 blogTitle:blogExist.blogtitle,
 });

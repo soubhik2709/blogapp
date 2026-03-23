@@ -12,7 +12,7 @@ export const generateRefreshToken = (userId) => {
   return jwt.sign(
     { userId },
     process.env.JWT_REFRESH_SECRET_KEY,
-    { expiresIn: "4d" }
+    { expiresIn: "7d" }
   );
 };
 

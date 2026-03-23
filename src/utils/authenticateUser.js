@@ -1,6 +1,6 @@
 // utils/authenticateUserFromToken.js
 import blogPeopleSchema from "../models/blogPeopleSchema.js";
-import verifyAccessToken from "../utils/verifyToken.js";
+import {verifyAccessToken} from "../utils/verifyToken.js";
 
 export async function authenticateUserFromToken(token){
     if(!token) throw new Error("No Token");
@@ -13,15 +13,15 @@ export async function authenticateUserFromToken(token){
          throw new Error("Invalid or expired token");
     }
    
-    if(!decoded || !decoded._id)throw new Error("Invalid token");
+    if(!decoded || !decoded.userId)throw new Error("Invalid token");
     
-    const user = await blogPeopleSchema.findById(decoded._id);
+    const user = await blogPeopleSchema.findById(decoded.userId);
 
     if(!user) throw new Error("user not found");
     if(!user.isVerified) throw new Error("User not verified");
 
     return {
-        userId:user._id.toString(),
+        id:user._id.toString(),
         role:user.role,
     }
 
